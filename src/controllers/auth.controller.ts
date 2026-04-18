@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { registerLocal, loginLocal, refreshAccessToken, logout } from "../services/auth/authServices.js";
+import { registerLocal, loginLocal, refreshAccessToken, logout } from "../services/auth.service.js";
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 

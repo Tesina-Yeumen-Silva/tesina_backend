@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { prisma } from './prisma.js';
 import { signAccessToken } from "../utils/jwt.js";
-import { generateRefreshToken } from "../services/auth/authServices.js";
+import { generateRefreshToken } from "../services/auth.service.js";
 
 passport.use(
     new GoogleStrategy(
