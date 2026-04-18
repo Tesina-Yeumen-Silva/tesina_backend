@@ -1,8 +1,8 @@
 import { Router } from "express";
-import authController from "../controllers/authController.js";
-import { validateLocalAuthLogin, validateLocalAuthRegister } from "../middleware/Validators/authValidation/localAuthValidation.js";
+import authController from "../controllers/auth.controller.js";
+import { validateLocalAuthLogin, validateLocalAuthRegister } from "../middleware/Validators/auth.validator.js";
 import passport from "../config/passport.js";
-import { authenticateJwt } from "../middleware/authMiddleware.js";
+import { authenticateJwt } from "../middleware/auth.middleware.js";
 
 const router = Router();
 

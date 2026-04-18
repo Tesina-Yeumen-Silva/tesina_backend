@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
-import { prisma } from '../../config/prisma.js';
-import { signAccessToken, signRefreshToken } from "../../utils/jwt.js";
-import { AppError } from "../../utils/appError.js";
+import { prisma } from '../config/prisma.js';
+import { signAccessToken, signRefreshToken } from "../utils/jwt.js";
+import { AppError } from "../utils/appError.js";
 
 export async function generateRefreshToken(userId: number) {
   const token = signRefreshToken();

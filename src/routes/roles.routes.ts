@@ -1,7 +1,7 @@
 import express from 'express';
-import roleController from '../controllers/roleController.js';
+import roleController from '../controllers/role.controller.js';
 import { validateNumericId } from '../middleware/Validators/validationHelper.js';
-import { validateRole } from '../middleware/Validators/roleValidation/roleValidation.js';
+import { validateRole } from '../middleware/Validators/role.validator.js';
 
 const router = express.Router();
 

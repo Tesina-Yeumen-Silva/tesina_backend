@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import { handleValidationErrors } from '../validationHelper.js';
+import { handleValidationErrors } from './validationHelper.js';
 
 export const validateLocalAuthLogin = [
     body('email')
