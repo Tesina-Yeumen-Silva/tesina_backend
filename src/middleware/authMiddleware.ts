@@ -9,13 +9,7 @@ export interface JwtPayload {
     role: string;
 }
 
-declare global {
-    namespace Express{
-        interface Request{
-            user?:JwtPayload
-        }
-    }
-}
+
 
 export function authenticateJwt(req:Request,res:Response,next:NextFunction){
     try {
