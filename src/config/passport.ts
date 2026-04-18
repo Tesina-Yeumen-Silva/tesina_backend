@@ -1,7 +1,8 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import {prisma} from './prisma.js'
-import { signToken } from "../utils/jwt.js";
+import { prisma } from './prisma.js';
+import { signAccessToken } from "../utils/jwt.js";
+import { generateRefreshToken } from "../services/auth/authServices.js";
 
 passport.use(
     new GoogleStrategy(
@@ -10,66 +11,71 @@ passport.use(
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
             callbackURL: process.env.GOOGLE_CALLBACK_URL!,
         },
-        async (_accessToken,_refreshToken,profile,done) => {
+        async (_accessToken, _refreshToken, profile, done) => {
             try {
                 const email = profile.emails?.[0]?.value;
-                if(!email) return done(new Error("Could not obtain the Google email"));
+                const name = profile.name?.givenName;
+                if (!email) return done(new Error("Could not obtain the Google email"));
 
-                let authProvider = await prisma.authProvider.findUnique({
-                    where:{
-                        userId_provider:{
-                            userId:0,
-                            provider:"google"
+                const authProvider = await prisma.authProvider.findFirst({
+                    where: { 
+                        provider: "google", 
+                        providerAccountId: profile.id,
+                        user: {
+                            deletedAt: null 
+                        }
+                    },
+                    include: { 
+                        user: {
+                            include: { role: true }
                         }
                     }
                 });
 
-                authProvider = await prisma.authProvider.findFirst({
-                    where: {provider:"google", providerAccountId:profile.id},
-                    include: {user:true}
-                })
-
-                if(authProvider){
-                    const user = await prisma.user.findUnique({
-                        where: {id:authProvider.userId},
-                        include: {role:true}
-                    })
-
-                    const token =  signToken({ userId: user!.id, email: user!.email, role: user!.role.name });
-                    return done(null, { token, user: { id: user!.id, email: user!.email, role: user!.role.name } });
+                if (authProvider) {
+                    const user = authProvider.user;
+                    const token = signAccessToken({ userId: user.id, email: user.email, role: user.role.name });
+                    const refreshToken = await generateRefreshToken(user!.id);
+                    return done(null, { token, refreshToken, user: { id: user.id, email: user.email, role: user.role.name } });
                 }
 
-                const defaultRole = await prisma.role.findUnique({where: {name:"user"}})
-                if(!defaultRole) return done(new Error("Default role not found"));
+                const defaultRole = await prisma.role.findUnique({ where: { name: "user" } });
+                if (!defaultRole) return done(new Error("Default role not found"));
 
-                const newUser = await prisma.$transaction(async(tx) => {
-                    let user = await tx.user.findUnique({where: {email}})
+                const newUser = await prisma.$transaction(async (tx) => {
+                    
+                    let user = await tx.user.findFirst({ 
+                        where: { 
+                            email,
+                            deletedAt: null 
+                        } 
+                    });
 
-                    if(!user){
+                    if (!user) {
                         user = await tx.user.create({
-                            data: {email,roleId:defaultRole.id}
-                        })
+                            data: { email, roleId: defaultRole.id, name }
+                        });
                     }
 
                     await tx.authProvider.create({
                         data: {
                             userId: user.id,
-                            provider:"google",
-                            providerAccountId:profile.id
+                            provider: "google",
+                            providerAccountId: profile.id
                         }
-                    })
+                    });
 
                     return user;
-                })
+                });
 
-                const token = signToken({ userId: newUser.id, email: newUser.email, role: defaultRole.name });
-                return done(null, { token, user: { id: newUser.id, email: newUser.email, role: defaultRole.name } });
+                const token = signAccessToken({ userId: newUser.id, email: newUser.email, role: defaultRole.name });
+                const refreshToken = await generateRefreshToken(newUser!.id);
+                return done(null, { token, refreshToken, user: { id: newUser.id, email: newUser.email, role: defaultRole.name } });
             } catch (error) {
                 return done(error as Error);
             }
         }
     )
-)
-
+);
 
 export default passport;
