@@ -9,10 +9,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  roleId Int
+  role Role @relation(fields: [roleId],references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  authProviders AuthProvider[]
+}
+
 model Role {
   id        Int       @id @default(autoincrement())
   name      String    @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+  users User[]
+}
+
+enum ProviderType {
+  local
+  google
+}
+
+model AuthProvider {
+  id Int @id @default(autoincrement())
+  userId Int
+  provider ProviderType
+  providerAccountId String?
+  passwordHash String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, provider])
 }
