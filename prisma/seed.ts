@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import bcrypt from "bcryptjs";
-import { prisma } from './prisma.js'
+import { prisma } from '../src/config/prisma.js'
 
 async function main() {
     const userRole = await prisma.role.upsert({
@@ -24,7 +24,7 @@ async function main() {
     const user = await prisma.user.upsert({
       where: { email },
       update: {},
-      create: { email, roleId: role.id },
+      create: { email, roleId: role.id,name:"test" },
     });
 
     await prisma.authProvider.upsert({
