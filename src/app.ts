@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import passport from "./config/passport.js";
-import roleRouter from './routes/roles.routes.js';
+import roleRouter from './routes/role.routes.js';
 import authRouter from './routes/auth.routes.js';
 
 
