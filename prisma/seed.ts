@@ -3,17 +3,41 @@ import bcrypt from "bcryptjs";
 import { prisma } from '../src/config/prisma.js'
 
 async function main() {
-    const userRole = await prisma.role.upsert({
-        where: {name:"user"},
-        update:{},
-        create: {name:"user"}
-    })
+  const userRole = await prisma.role.upsert({
+    where: {name:"user"},
+    update:{},
+    create: {name:"user"}
+  })
 
-    const adminRole = await prisma.role.upsert({
+  const adminRole = await prisma.role.upsert({
     where: { name: "admin" },
     update: {},
     create: { name: "admin" },
   });
+
+  await prisma.reportCategory.upsert({
+    where: {name:"acequia"},
+    update:{},
+    create:{name:"acequia"}
+  })
+
+  await prisma.reportCategory.upsert({
+    where: {name:"bache"},
+    update:{},
+    create:{name:"bache"}
+  })
+
+  await prisma.reportCategory.upsert({
+    where: {name:"arbol"},
+    update:{},
+    create:{name:"arbol"}
+  })
+
+  await prisma.reportCategory.upsert({
+    where: {name:"basura"},
+    update:{},
+    create:{name:"basura"}
+  })
 
   const passwordHash = await bcrypt.hash("123456", 10);
 
@@ -33,6 +57,8 @@ async function main() {
       create: { userId: user.id, provider: "local", passwordHash },
     });
   }
+
+  
 
   console.log("Roles seeded")
 }
