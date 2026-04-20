@@ -1,8 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import passport from "./config/passport.js";
-import roleRouter from './routes/roles.routes.js';
+import roleRouter from './routes/role.routes.js';
 import authRouter from './routes/auth.routes.js';
+import userRouter from './routes/user.routes.js'
 
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(passport.initialize());
 
 app.use("/role",roleRouter);
 app.use("/auth",authRouter);
+app.use("/user",userRouter);
 
 
 export default app;
