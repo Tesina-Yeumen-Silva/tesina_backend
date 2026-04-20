@@ -39,7 +39,7 @@ export async function logout(refreshToken: string) {
   await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
 }
 
-export async function registerLocal(email: string, password: string, name: string) {
+export async function registerLocal(email: string, password: string, name: string,roleId:number=1) {
     const existingUser = await prisma.user.findFirst({ 
         where: { email, deletedAt: null } 
     });
@@ -52,7 +52,7 @@ export async function registerLocal(email: string, password: string, name: strin
             email,
             name,
             role: { 
-                connect: { name: "user" } 
+                connect: { id:roleId } 
             },
             authProviders: {
                 create: {
