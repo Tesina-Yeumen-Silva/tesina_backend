@@ -39,6 +39,30 @@ async function main() {
     create:{name:"basura"}
   })
 
+  await prisma.reportState.upsert({
+    where: {name:"Reported"},
+    update:{},
+    create:{name:"Reported", color:"#f2931f"}
+  })
+
+  await prisma.reportState.upsert({
+    where: {name:"In process"},
+    update:{},
+    create:{name:"In process", color:"#f2f213"}
+  })
+
+  await prisma.reportState.upsert({
+    where: {name:"Solved"},
+    update:{},
+    create:{name:"Solved", color:"#13f213"}
+  })
+
+  await prisma.reportState.upsert({
+    where: {name:"Bad report"},
+    update:{},
+    create:{name:"Bad report", color:"#cf3719"}
+  })
+
   const passwordHash = await bcrypt.hash("123456", 10);
 
   for (const { email, role } of [
