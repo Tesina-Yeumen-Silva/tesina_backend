@@ -2,20 +2,20 @@ import type { Request,Response } from "express";
 import {prisma} from '../config/prisma.js';
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
-import { registerLocal } from "../services/auth.service.js";
+import { registerLocalService } from "../services/auth.service.js";
 import bcrypt from "bcryptjs";
 
-class UserController{
-    createUser = catchAsync(async (req:Request,res:Response) =>{
+
+    export const createUser = catchAsync(async (req:Request,res:Response) =>{
         const {name,email,password,roleId} = req.body;
 
-        const result = await registerLocal(email,password,name,roleId);
+        const result = await registerLocalService(email,password,name,roleId);
 
         res.status(201).json({data:result});
     })
 
 
-    getAllUser = catchAsync(async (req:Request,res:Response) =>{
+    export const getAllUser = catchAsync(async (req:Request,res:Response) =>{
         const users = await prisma.user.findMany({
             where:{deletedAt:null}
         })
@@ -23,7 +23,7 @@ class UserController{
         res.status(200).json({data:users});
     })
 
-    getUserById = catchAsync(async (req:Request,res:Response) =>{
+    export const getUserById = catchAsync(async (req:Request,res:Response) =>{
         const userId = Number(req.params.userId);
         const user = await prisma.user.findFirst({
             where:{
@@ -37,7 +37,7 @@ class UserController{
         res.status(200).json({data:user})
     })
 
-    updateUser = catchAsync(async (req:Request,res:Response) =>{
+    export const updateUser = catchAsync(async (req:Request,res:Response) =>{
         const {email,name,roleId} = req.body;
         const userId = Number(req.params.userId);
 
@@ -57,7 +57,7 @@ class UserController{
         });
     })
 
-    updatePasword = catchAsync(async (req: Request, res: Response) => {
+    export const updatePasword = catchAsync(async (req: Request, res: Response) => {
         const {password} = req.body;
         const userId = Number(req.params.userId);
         
@@ -83,7 +83,7 @@ class UserController{
 
     });
 
-    deleteUserById = catchAsync(async (req:Request,res:Response) =>{
+    export const deleteUserById = catchAsync(async (req:Request,res:Response) =>{
         const userId = Number(req.params.userId);
 
         const user = await prisma.user.findFirst({
@@ -103,7 +103,7 @@ class UserController{
 
     })
 
-    getUserByEmail = catchAsync(async (req:Request,res:Response) =>{
+    export const getUserByEmail = catchAsync(async (req:Request,res:Response) =>{
         const email = req.params.email as string;
 
         const user = await prisma.user.findFirst({
@@ -116,8 +116,3 @@ class UserController{
             data: user
         });
     })
-}
-
-
-
-export default new UserController();

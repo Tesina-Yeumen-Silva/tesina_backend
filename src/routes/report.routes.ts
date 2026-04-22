@@ -1,58 +1,62 @@
 import { Router } from "express";
-import reportController from "../controllers/report.controller.js";
-import reportAdhesionController from "../controllers/reportAdhesion.controller.js";
-import reportHistoryController from "../controllers/reportHistory.controller.js";
+import { createReport,getAllReport,getReportById,updateReport,deleteReportById,changeState } from "../controllers/report.controller.js";
+import { toggleAdhesion, getAdhesionsByReportId } from "../controllers/reportAdhesion.controller.js";
+import { getAllHistory,getHistoryByReportId } from "../controllers/reportHistory.controller.js";
+import { uploadMiddleware } from "../middleware/upload.middleware.js";
 
 const router = Router();
 
 router.post(
     '/',
-    reportController.createReport
+    uploadMiddleware.single('image'),
+    createReport
 )
 
 router.get(
     '/',
-    reportController.getAllReport
+    getAllReport
 )
 
 router.get(
     '/:reportId',
-    reportController.getReportById
+    getReportById
 )
 
 router.put(
     '/:reportId',
-    reportController.updateReport
+    updateReport
 )
 
 router.delete(
     '/:reportId',
-    reportController.deleteReportById
+    deleteReportById
 )
 
 router.put(
     '/:reportId/state',
-    reportController.changeState
+    changeState
 )
 
 router.get(
     '/',
-    reportHistoryController.getAllHistory
+    getAllHistory
 )
 
 router.get(
     '/:reportId',
-    reportHistoryController.getHistoryByReportId
+    getHistoryByReportId
 )
 
 router.post(
     '/:reportId/adhesions',
-    reportAdhesionController.toggleAdhesion
+    toggleAdhesion
 )
 
 router.get(
     '/:reportId/adhesions',
-    reportAdhesionController.getAdhesionsByReportId
+    getAdhesionsByReportId
 )
+
+
 
 export default router;

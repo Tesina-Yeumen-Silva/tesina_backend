@@ -3,9 +3,7 @@ import { prisma } from "../config/prisma.js";
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 
-class RoleController {
-    
-    getAllRole = catchAsync(async (req: Request, res: Response) => {
+    export const getAllRole = catchAsync(async (req: Request, res: Response) => {
         const roles = await prisma.role.findMany({
             where: {
                 deletedAt: null
@@ -15,7 +13,7 @@ class RoleController {
         res.status(200).json({ data: roles });
     });
 
-    getRoleById = catchAsync(async (req: Request, res: Response) => {
+    export const getRoleById = catchAsync(async (req: Request, res: Response) => {
         const roleId = Number(req.params.roleId); 
         
         const role = await prisma.role.findFirst({
@@ -29,7 +27,7 @@ class RoleController {
         res.status(200).json({ data: role });
     });
 
-    createRole = catchAsync(async (req: Request, res: Response) => {
+    export const createRole = catchAsync(async (req: Request, res: Response) => {
         const { name } = req.body;
         
         const newRole = await prisma.role.create({
@@ -42,7 +40,7 @@ class RoleController {
         });
     });
 
-    updateRole = catchAsync(async (req: Request, res: Response) => {
+    export const updateRole = catchAsync(async (req: Request, res: Response) => {
         const roleId = Number(req.params.roleId);
         const { name } = req.body;
 
@@ -65,7 +63,7 @@ class RoleController {
         });
     });
 
-    deleteRoleById = catchAsync(async (req: Request, res: Response) => {
+    export const deleteRoleById = catchAsync(async (req: Request, res: Response) => {
         const roleId = Number(req.params.roleId);
 
         const existingRole = await prisma.role.findFirst({
@@ -87,6 +85,3 @@ class RoleController {
             message: "Role deleted successfully"
         });
     });
-}
-
-export default new RoleController();

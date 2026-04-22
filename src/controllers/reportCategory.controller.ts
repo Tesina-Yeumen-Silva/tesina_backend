@@ -3,8 +3,7 @@ import type { Request,Response } from "express";
 import { prisma } from "../config/prisma.js";
 import { AppError } from "../utils/appError.js";
 
-class ReportCategory{
-    createCategory = catchAsync(async(req:Request,res:Response) =>{
+    export const createCategory = catchAsync(async(req:Request,res:Response) =>{
         const {name} = req.body;
 
         const newCategory = await prisma.reportCategory.create({
@@ -17,7 +16,7 @@ class ReportCategory{
         });
     })
 
-    getAllCategory = catchAsync(async(req:Request,res:Response) =>{
+    export const getAllCategory = catchAsync(async(req:Request,res:Response) =>{
         const categories = await prisma.reportCategory.findMany({
             where:{deletedAt:null}
         }) 
@@ -25,7 +24,7 @@ class ReportCategory{
         res.status(200).json({ data: categories });
     })
     
-    getCategoryById = catchAsync(async(req:Request,res:Response) =>{
+    export const getCategoryById = catchAsync(async(req:Request,res:Response) =>{
         const categoryId = Number(req.params.categoryId);
 
         const category = await prisma.reportCategory.findFirst({
@@ -39,7 +38,7 @@ class ReportCategory{
         
     })
 
-    updateCategory = catchAsync(async(req:Request,res:Response) =>{
+    export const updateCategory = catchAsync(async(req:Request,res:Response) =>{
         const categoryId = Number(req.params.categoryId);
         const {name} = req.body;
 
@@ -60,7 +59,7 @@ class ReportCategory{
         });
     })
 
-    deleteCategoryById = catchAsync(async(req:Request,res:Response) =>{
+    export const deleteCategoryById = catchAsync(async(req:Request,res:Response) =>{
         const categoryId = Number(req.params.categoryId);
 
         const category = await prisma.reportCategory.findFirst({
@@ -80,6 +79,4 @@ class ReportCategory{
 
     })
 
-}
 
-export default new ReportCategory();

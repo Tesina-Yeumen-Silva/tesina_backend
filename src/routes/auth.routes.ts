@@ -1,15 +1,15 @@
 import { Router } from "express";
-import authController from "../controllers/auth.controller.js";
+import { registerLocal,loginLocal,refreshToken,logout, googleCallback, googleFailed } from "../controllers/auth.controller.js";
 import { validateLocalAuthLogin, validateLocalAuthRegister } from "../middleware/Validators/auth.validator.js";
 import passport from "../config/passport.js";
 import { authenticateJwt } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.post("/register", validateLocalAuthRegister, authController.registerLocal);
-router.post("/login", validateLocalAuthLogin, authController.loginLocal);
-router.post("/refresh", authController.refreshToken);
-router.post("/logout", authenticateJwt, authController.logout);
+router.post("/register", validateLocalAuthRegister, registerLocal);
+router.post("/login", validateLocalAuthLogin, loginLocal);
+router.post("/refresh", refreshToken);
+router.post("/logout", authenticateJwt, logout);
 
 router.get(
     "/google",
@@ -19,9 +19,9 @@ router.get(
 router.get(
     "/google/callback",
     passport.authenticate("google", { failureRedirect: "/api/auth/google/failed", session: false }),
-    authController.googleCallback 
+    googleCallback 
 );
 
-router.get("/google/failed", authController.googleFailed); 
+router.get("/google/failed", googleFailed); 
 
 export default router;

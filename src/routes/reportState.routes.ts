@@ -1,31 +1,31 @@
 import { Router } from "express";
-import reportStateController from "../controllers/reportState.controller.js";
+import { createState,getAllStates,getStateById,updateState,deleteStateById } from "../controllers/reportState.controller.js";
 
 const router = Router();
 
 router.post(
     '/',
-    reportStateController.createState
+    createState
 )
 
 router.get(
     '/',
-    reportStateController.getAllStates
+    getAllStates
 )
 
 router.get(
     '/:stateId',
-    reportStateController.getStateById
+    getStateById
 )
 
 router.put(
     '/:stateId',
-    reportStateController.updateState
+    updateState
 )
 
 router.delete(
     '/:stateId',
-    reportStateController.deleteStateById
+    deleteStateById
 )
 
 

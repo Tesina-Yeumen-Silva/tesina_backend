@@ -1,31 +1,30 @@
 import { Router } from "express";
-import reportCategoryController from "../controllers/reportCategory.controller.js";
-
+import { createCategory,getAllCategory,getCategoryById,updateCategory,deleteCategoryById } from "../controllers/reportCategory.controller.js";
 const router = Router();
 
 router.post(
     '/',
-    reportCategoryController.createCategory
+    createCategory
 )
 
 router.get(
     '/',
-    reportCategoryController.getAllCategory
+    getAllCategory
 )
 
 router.get(
     '/:categoryId',
-    reportCategoryController.getCategoryById
+    getCategoryById
 )
 
 router.put(
     '/:categoryId',
-    reportCategoryController.updateCategory
+    updateCategory
 )
 
 router.delete(
     '/:categoryId',
-    reportCategoryController.deleteCategoryById
+    deleteCategoryById
 )
 
 

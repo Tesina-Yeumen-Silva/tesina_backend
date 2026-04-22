@@ -3,8 +3,7 @@ import type { Request,Response } from "express";
 import { prisma } from "../config/prisma.js";
 import { AppError } from "../utils/appError.js";
 
-class ReportState{
-    createState = catchAsync(async(req:Request,res:Response) =>{
+    export const createState = catchAsync(async(req:Request,res:Response) =>{
         const {name,color} = req.body;
 
         const newState = await prisma.reportState.create({
@@ -17,7 +16,7 @@ class ReportState{
         });
     })
 
-    getAllStates = catchAsync(async(req:Request,res:Response) =>{
+    export const getAllStates = catchAsync(async(req:Request,res:Response) =>{
         const states = await prisma.reportState.findMany({
             where:{deletedAt:null}
         }) 
@@ -25,7 +24,7 @@ class ReportState{
         res.status(200).json({ data: states });
     })
     
-    getStateById = catchAsync(async(req:Request,res:Response) =>{
+    export const getStateById = catchAsync(async(req:Request,res:Response) =>{
         const stateId = Number(req.params.stateId);
 
         const state = await prisma.reportState.findFirst({
@@ -39,7 +38,7 @@ class ReportState{
         
     })
 
-    updateState = catchAsync(async(req:Request,res:Response) =>{
+    export const updateState = catchAsync(async(req:Request,res:Response) =>{
         const stateId = Number(req.params.stateId);
         const {name,color} = req.body;
 
@@ -60,7 +59,7 @@ class ReportState{
         });
     })
 
-    deleteStateById = catchAsync(async(req:Request,res:Response) =>{
+    export const deleteStateById = catchAsync(async(req:Request,res:Response) =>{
         const stateId = Number(req.params.stateId);
 
         const state = await prisma.reportState.findFirst({
@@ -80,6 +79,3 @@ class ReportState{
 
     })
 
-}
-
-export default new ReportState();
