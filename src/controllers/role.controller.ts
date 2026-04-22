@@ -2,13 +2,10 @@ import type { Request, Response } from "express";
 import { prisma } from "../config/prisma.js";
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import { createRoleService, deleteRoleByIdService, getAllRoleService, getRoleByIdService, updateRoleService } from "../services/role.services.js";
 
     export const getAllRole = catchAsync(async (req: Request, res: Response) => {
-        const roles = await prisma.role.findMany({
-            where: {
-                deletedAt: null
-            }
-        });
+        const roles = await getAllRoleService()
 
         res.status(200).json({ data: roles });
     });
@@ -16,13 +13,7 @@ import { catchAsync } from "../utils/catchAsync.js";
     export const getRoleById = catchAsync(async (req: Request, res: Response) => {
         const roleId = Number(req.params.roleId); 
         
-        const role = await prisma.role.findFirst({
-            where: { id: roleId, deletedAt: null }
-        });
-
-        if (!role) {
-            throw new AppError("Role not found", 404);
-        }
+        const role = await getRoleByIdService(roleId)
 
         res.status(200).json({ data: role });
     });
@@ -30,9 +21,7 @@ import { catchAsync } from "../utils/catchAsync.js";
     export const createRole = catchAsync(async (req: Request, res: Response) => {
         const { name } = req.body;
         
-        const newRole = await prisma.role.create({
-            data: { name }
-        });
+        const newRole = await createRoleService(name)
 
         res.status(201).json({
             message: "Role created",
@@ -44,18 +33,7 @@ import { catchAsync } from "../utils/catchAsync.js";
         const roleId = Number(req.params.roleId);
         const { name } = req.body;
 
-        const existingRole = await prisma.role.findFirst({
-            where: { id: roleId, deletedAt: null }
-        });
-
-        if (!existingRole) {
-            throw new AppError("Role not found", 404);
-        }
-
-        const updatedRole = await prisma.role.update({
-            where: { id: roleId },
-            data: { name }
-        });
+        const updatedRole = await updateRoleService(roleId,name)
 
         res.status(200).json({
             message: "Role updated successfully",
@@ -66,20 +44,7 @@ import { catchAsync } from "../utils/catchAsync.js";
     export const deleteRoleById = catchAsync(async (req: Request, res: Response) => {
         const roleId = Number(req.params.roleId);
 
-        const existingRole = await prisma.role.findFirst({
-            where: { id: roleId, deletedAt: null }
-        });
-
-        if (!existingRole) {
-            throw new AppError("Role not found", 404);
-        }
-
-        await prisma.role.update({
-            where: { id: roleId },
-            data: { 
-                deletedAt: new Date() 
-            }
-        });
+        await deleteRoleByIdService(roleId)
 
         res.status(200).json({
             message: "Role deleted successfully"
