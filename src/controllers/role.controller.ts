@@ -1,6 +1,4 @@
 import type { Request, Response } from "express";
-import { prisma } from "../config/prisma.js";
-import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { createRoleService, deleteRoleByIdService, getAllRoleService, getRoleByIdService, updateRoleService } from "../services/role.services.js";
 
