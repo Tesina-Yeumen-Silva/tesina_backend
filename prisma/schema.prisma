@@ -65,7 +65,7 @@ model Report {
   longitude Float
   description String
   imageUrl String
-  isAnonymus Boolean
+  isAnonymous Boolean
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
