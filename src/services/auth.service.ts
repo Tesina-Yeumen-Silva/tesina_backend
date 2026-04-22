@@ -3,7 +3,7 @@ import { prisma } from '../config/prisma.js';
 import { signAccessToken, signRefreshToken } from "../utils/jwt.js";
 import { AppError } from "../utils/appError.js";
 
-export async function generateRefreshToken(userId: number) {
+export async function generateRefreshTokenService(userId: number) {
   const token = signRefreshToken();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
@@ -14,7 +14,7 @@ export async function generateRefreshToken(userId: number) {
   return token;
 }
 
-export async function refreshAccessToken(refreshToken: string) {
+export async function refreshAccessTokenService(refreshToken: string) {
   const stored = await prisma.refreshToken.findUnique({
     where: { token: refreshToken },
     include: { user: { include: { role: true } } },
@@ -35,11 +35,11 @@ export async function refreshAccessToken(refreshToken: string) {
   return { accessToken };
 }
 
-export async function logout(refreshToken: string) {
+export async function logoutService(refreshToken: string) {
   await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
 }
 
-export async function registerLocal(email: string, password: string, name: string,roleId:number=1) {
+export async function registerLocalService(email: string, password: string, name: string,roleId:number=1) {
     const existingUser = await prisma.user.findFirst({ 
         where: { email, deletedAt: null } 
     });
@@ -67,12 +67,12 @@ export async function registerLocal(email: string, password: string, name: strin
     });
 
     const token = signAccessToken({ userId: user.id, email: user.email, role: user.role.name });
-    const refreshToken = await generateRefreshToken(user.id);
+    const refreshToken = await generateRefreshTokenService(user.id);
 
     return { token, refreshToken, user: { id: user.id, email: user.email, role: user.role.name } };
 }
 
-export async function loginLocal(email: string, password: string) {
+export async function loginLocalService(email: string, password: string) {
     const user = await prisma.user.findFirst({
         where: { email, deletedAt: null },
         include: {
@@ -95,6 +95,6 @@ export async function loginLocal(email: string, password: string) {
     
 
     const token = signAccessToken({ userId: user.id, email: user.email, role: user.role.name });
-    const refreshToken = await generateRefreshToken(user.id);
+    const refreshToken = await generateRefreshTokenService(user.id);
     return { token, refreshToken, user: { id: user.id, email: user.email, role: user.role.name } };
 }
