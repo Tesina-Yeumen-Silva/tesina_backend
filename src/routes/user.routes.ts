@@ -19,7 +19,7 @@ router.get(
 )
 
 router.get(
-    '/email/:email',
+    '/:email/email',
     userController.getUserByEmail
 )
 
@@ -29,7 +29,7 @@ router.put(
 )
 
 router.put(
-    '/password/:userId',
+    '/:userId/password',
     userController.updatePasword
 )
 

@@ -6,10 +6,10 @@ import { authenticateJwt } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.post("/register", validateLocalAuthRegister, authController.registerLocalController);
-router.post("/login", validateLocalAuthLogin, authController.loginLocalController);
-router.post("/refresh", authController.refreshTokenController);
-router.post("/logout", authenticateJwt, authController.logoutController);
+router.post("/register", validateLocalAuthRegister, authController.registerLocal);
+router.post("/login", validateLocalAuthLogin, authController.loginLocal);
+router.post("/refresh", authController.refreshToken);
+router.post("/logout", authenticateJwt, authController.logout);
 
 router.get(
     "/google",
@@ -19,9 +19,9 @@ router.get(
 router.get(
     "/google/callback",
     passport.authenticate("google", { failureRedirect: "/api/auth/google/failed", session: false }),
-    authController.googleCallbackController 
+    authController.googleCallback 
 );
 
-router.get("/google/failed", authController.googleFailedController); 
+router.get("/google/failed", authController.googleFailed); 
 
 export default router;
