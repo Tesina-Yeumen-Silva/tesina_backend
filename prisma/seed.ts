@@ -40,27 +40,39 @@ async function main() {
   })
 
   await prisma.reportState.upsert({
-    where: {name:"Reported"},
+    where: {name:"Pending"},
     update:{},
-    create:{name:"Reported", color:"#f2931f"}
+    create:{name:"Pending", color:"#dd3611"}
   })
 
   await prisma.reportState.upsert({
-    where: {name:"In process"},
+    where: {name:"Duplicated"},
     update:{},
-    create:{name:"In process", color:"#f2f213"}
+    create:{name:"Duplicated", color:"#940992"}
   })
 
   await prisma.reportState.upsert({
-    where: {name:"Solved"},
+    where: {name:"Rejected"},
     update:{},
-    create:{name:"Solved", color:"#13f213"}
+    create:{name:"Rejected", color:"#161716"}
   })
 
   await prisma.reportState.upsert({
-    where: {name:"Bad report"},
+    where: {name:"Validated"},
     update:{},
-    create:{name:"Bad report", color:"#cf3719"}
+    create:{name:"Validated", color:"#e2e60a"}
+  })
+
+  await prisma.reportState.upsert({
+    where: {name:"In_progress"},
+    update:{},
+    create:{name:"In_progress", color:"#1a16d8"}
+  })
+
+  await prisma.reportState.upsert({
+    where: {name:"Resolved"},
+    update:{},
+    create:{name:"Resolved", color:"#09dd1e"}
   })
 
   const passwordHash = await bcrypt.hash("123456", 10);
