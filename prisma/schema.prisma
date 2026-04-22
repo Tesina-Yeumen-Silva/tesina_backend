@@ -29,6 +29,8 @@ model User {
   deletedAt DateTime?
   refreshTokens RefreshToken[]
   authProviders AuthProvider[]
+  reportAdhesion ReportAdhesion[]
+  report Report[]
 }
 
 model Role {
@@ -56,12 +58,51 @@ model AuthProvider {
   @@unique([userId, provider])
 }
 
+model Report {
+  id Int @id @default(autoincrement())
+  address String
+  latitude Float
+  longitude Float
+  description String
+  imageUrl String
+  isAnonymus Boolean
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  categoryId Int
+  userId Int
+  user User @relation(fields: [userId],references: [id])
+  category ReportCategory @relation(fields: [categoryId],references: [id])
+  reportHistory ReportHistory[]
+  reportAdhesion ReportAdhesion[]
+}
+
+model ReportAdhesion{
+  id Int @id @default(autoincrement())
+  userId Int
+  reportId Int
+  createdAt DateTime  @default(now())
+  report Report @relation(fields: [reportId],references: [id])
+  user User @relation(fields: [userId],references: [id])
+}
+
+model ReportHistory{
+  id Int @id @default(autoincrement())
+  reportId Int
+  stateId Int
+  observation String 
+  createdAt DateTime  @default(now())
+  report Report @relation(fields: [reportId],references: [id])
+  state ReportState @relation(fields: [stateId],references: [id])
+}
+
 model ReportCategory {
   id Int @id @default(autoincrement())
   name String @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+  reports Report[]
 }
 
 model ReportState {
@@ -71,4 +112,5 @@ model ReportState {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+  reportHistory ReportHistory[]
 }
