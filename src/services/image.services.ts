@@ -1,4 +1,3 @@
-import { buffer } from "node:stream/consumers";
 import sharp from "sharp"
 
 const IMAGE_CONFIG = {
@@ -8,7 +7,7 @@ const IMAGE_CONFIG = {
   format: 'jpeg' as const,  
 } as const;
 
-export const optimizeImage = async (inputBuffer:Buffer) => {
+export const optimizeImageService = async (inputBuffer:Buffer) => {
     const image = sharp(inputBuffer).rotate();
 
     const metadata = await image.metadata();
