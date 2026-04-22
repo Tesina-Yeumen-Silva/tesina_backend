@@ -33,7 +33,7 @@ import { deleteUserByIdService, getAllUsersService, getUserByEmailService, getUs
         const {email,name,roleId} = req.body;
         const userId = Number(req.params.userId);
 
-        const updatedUser = await updatedUserService(email,name,roleId,userId)
+        const updatedUser = await updatedUserService(userId,email,name,roleId)
 
         res.status(200).json({
             message: "User updated successfully",
@@ -46,7 +46,7 @@ import { deleteUserByIdService, getAllUsersService, getUserByEmailService, getUs
         const userId = Number(req.params.userId);
         
 
-        await updatePaswordService(password,userId)
+        await updatePaswordService(userId,password)
         
         res.status(200).json({
             message: "Password updated successfully",

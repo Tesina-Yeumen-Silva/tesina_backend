@@ -35,7 +35,7 @@ export const getUserByIdService = async(userId:number) => {
     return user;
 }
 
-export const updatedUserService = async(email:string,name:string,roleId:number,userId:number) => {
+export const updatedUserService = async(userId:number,email:string,name:string,roleId:number) => {
     const user = await prisma.user.findFirst({
             where:{id:userId, deletedAt:null}
         });
@@ -49,7 +49,7 @@ export const updatedUserService = async(email:string,name:string,roleId:number,u
     return updatedUser
 } 
 
-export const updatePaswordService = async (password:string,userId:number) => {
+export const updatePaswordService = async (userId:number,password:string) => {
     const provider = await prisma.authProvider.findFirst({
         where:{userId, provider:"local"}
     })
