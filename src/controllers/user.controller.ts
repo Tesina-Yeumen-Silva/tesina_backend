@@ -1,6 +1,4 @@
 import type { Request,Response } from "express";
-import {prisma} from '../config/prisma.js';
-import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { registerLocalService } from "../services/auth.service.js";
 import { deleteUserByIdService, getAllUsersService, getUserByEmailService, getUserByIdService, updatedUserService, updatePaswordService } from "../services/user.services.js";
@@ -73,7 +71,7 @@ import { deleteUserByIdService, getAllUsersService, getUserByEmailService, getUs
 
 
         const user = await getUserByEmailService(email)
-        
+
         res.status(200).json({
             data: user
         });
