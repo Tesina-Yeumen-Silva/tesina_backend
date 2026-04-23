@@ -1,41 +1,25 @@
 import { Router } from "express";
-import { createUser,getAllUser,getUserByEmail,getUserById,updatePasword,updateUser,deleteUserById } from "../controllers/user.controller.js";
+import { createUser, getAllUser, getUserByEmail, getUserById, updatePassword, updateUser, deleteUserById } from "../controllers/user.controller.js";
+import { validateBody, validateParams } from "../middleware/validate.middleware.js";
+import { generateIdSchema } from "../schemas/common.schema.js";
+import { 
+    createUserSchema, updateUserSchema, updatePasswordSchema, emailParamSchema
+} from "../schemas/user.schema.js";
 
 const router = Router();
 
-router.post(
-    '/',
-    createUser
-)
+router.post('/', validateBody(createUserSchema), createUser);
 
-router.get(
-    '/',
-    getAllUser
-)
+router.get('/', getAllUser);
 
-router.get(
-    '/:userId',
-    getUserById
-)
+router.get('/:userId', validateParams(generateIdSchema("userId")), getUserById);
 
-router.get(
-    '/:email/email',
-    getUserByEmail
-)
+router.get('/email/:email', validateParams(emailParamSchema), getUserByEmail);
 
-router.put(
-    '/:userId',
-    updateUser
-)
+router.put('/:userId', validateParams(generateIdSchema("userId")), validateBody(updateUserSchema), updateUser);
 
-router.put(
-    '/:userId/password',
-    updatePasword
-)
+router.put('/:userId/password', validateParams(generateIdSchema("userId")), validateBody(updatePasswordSchema), updatePassword);
 
-router.delete(
-    '/:userId',
-    deleteUserById
-)
+router.delete('/:userId', validateParams(generateIdSchema("userId")), deleteUserById);
 
 export default router;

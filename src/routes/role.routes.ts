@@ -1,13 +1,14 @@
 import express from 'express';
 import { createRole,getAllRole,getRoleById,updateRole,deleteRoleById } from '../controllers/role.controller.js';
-import { validateNumericId } from '../middleware/Validators/validationHelper.js';
-import { validateRole } from '../middleware/Validators/role.validator.js';
+import { validateParams, validateBody } from '../middleware/validate.middleware.js';
+import { createRoleSchema, updateRoleSchema } from '../schemas/role.schema.js';
+import { generateIdSchema } from '../schemas/common.schema.js';
 
 const router = express.Router();
 
 router.post(
     '/',
-    validateRole,
+    validateBody(createRoleSchema),
     createRole
 )
 
@@ -18,20 +19,20 @@ router.get(
 
 router.get(
     '/:roleId',
-    validateNumericId('roleId'),
+    validateParams(generateIdSchema("roleId")),
     getRoleById
 )
 
 router.put(
     '/:roleId',
-    validateNumericId('roleId'),
-    validateRole,
+    validateParams(generateIdSchema("roleId")),
+    validateBody(updateRoleSchema),
     updateRole
 )
 
 router.delete(
     '/:roleId',
-    validateNumericId('roleId'),
+    validateParams(generateIdSchema("roleId")),
     deleteRoleById
 )
 

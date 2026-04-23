@@ -1,54 +1,62 @@
 import { catchAsync } from "../utils/catchAsync.js";
-import type { Request,Response } from "express";
-import { createStateService, deleteStateByIdService, getAllStatesServices, getStateByIdService, updatedStateService } from "../services/reportState.services.js";
+import type { Request, Response } from "express";
+import {
+  createStateService,
+  deleteStateByIdService,
+  getAllStatesServices,
+  getStateByIdService,
+  updatedStateService,
+} from "../services/reportState.services.js";
+import type {
+  CreateStateDTO,
+  UpdateStateDTO,
+} from "../schemas/state.schema.js";
 
-    export const createState = catchAsync(async(req:Request,res:Response) =>{
-        const {name,color} = req.body;
+export const createState = catchAsync(async (req: Request, res: Response) => {
+  const data: CreateStateDTO = req.body;
 
-        const newState = await createStateService(name,color)
+  const newState = await createStateService(data);
 
-        res.status(201).json({
-            message: "State created",
-            data: newState
-        });
-    })
+  res.status(201).json({
+    message: "State created",
+    data: newState,
+  });
+});
 
-    export const getAllStates = catchAsync(async(req:Request,res:Response) =>{
-        const states = await getAllStatesServices()
+export const getAllStates = catchAsync(async (req: Request, res: Response) => {
+  const states = await getAllStatesServices();
 
-        res.status(200).json({ data: states });
-    })
-    
-    export const getStateById = catchAsync(async(req:Request,res:Response) =>{
-        const stateId = Number(req.params.stateId);
+  res.status(200).json({ data: states });
+});
 
-        const state = await getStateByIdService(stateId)
+export const getStateById = catchAsync(async (req: Request, res: Response) => {
+  const stateId = Number(req.params.stateId);
 
-    
-        res.status(200).json({ data: state });
-        
-    })
+  const state = await getStateByIdService(stateId);
 
-    export const updateState = catchAsync(async(req:Request,res:Response) =>{
-        const stateId = Number(req.params.stateId);
-        const {name,color} = req.body;
+  res.status(200).json({ data: state });
+});
 
-        const updatedState = await updatedStateService(stateId,name,color)
+export const updateState = catchAsync(async (req: Request, res: Response) => {
+  const stateId = Number(req.params.stateId);
+  const data: UpdateStateDTO = req.body;
 
-        res.status(200).json({
-            message: "State updated successfully",
-            data: updatedState
-        });
-    })
+  const updatedState = await updatedStateService(stateId, data);
 
-    export const deleteStateById = catchAsync(async(req:Request,res:Response) =>{
-        const stateId = Number(req.params.stateId);
+  res.status(200).json({
+    message: "State updated successfully",
+    data: updatedState,
+  });
+});
 
-        await deleteStateByIdService(stateId);
+export const deleteStateById = catchAsync(
+  async (req: Request, res: Response) => {
+    const stateId = Number(req.params.stateId);
 
-        res.status(200).json({
-            message: "State deleted successfully",
-        });
+    await deleteStateByIdService(stateId);
 
-    })
-
+    res.status(200).json({
+      message: "State deleted successfully",
+    });
+  },
+);

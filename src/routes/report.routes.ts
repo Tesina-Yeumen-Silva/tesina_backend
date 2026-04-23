@@ -3,12 +3,14 @@ import { createReport,getAllReport,getReportById,updateReport,deleteReportById,c
 import { toggleAdhesion, getAdhesionsByReportId } from "../controllers/reportAdhesion.controller.js";
 import { getAllHistory,getHistoryByReportId } from "../controllers/reportHistory.controller.js";
 import { uploadMiddleware } from "../middleware/upload.middleware.js";
-
+import { validateBody } from "../middleware/validate.middleware.js";
+import { createReportSchema } from "../schemas/report.schema.js";
 const router = Router();
 
 router.post(
     '/',
     uploadMiddleware.single('image'),
+    validateBody(createReportSchema),
     createReport
 )
 

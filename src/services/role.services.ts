@@ -1,4 +1,5 @@
 import { prisma } from "../config/prisma.js";
+import type { CreateRoleDTO, UpdateRoleDTO } from "../schemas/role.schema.js";
 import { AppError } from "../utils/appError.js";
 
 
@@ -26,16 +27,16 @@ export const getAllRoleService = async () => {
 
     };
 
-    export const createRoleService = async (name:string) => {
+    export const createRoleService = async (data:CreateRoleDTO) => {
         
         const newRole = await prisma.role.create({
-            data: { name }
+            data: data
         });
 
         return newRole;
     };
 
-    export const updateRoleService = async (roleId:number,name:string) => {
+    export const updateRoleService = async (roleId:number,data:UpdateRoleDTO) => {
         const existingRole = await prisma.role.findFirst({
             where: { id: roleId, deletedAt: null }
         });
@@ -46,7 +47,7 @@ export const getAllRoleService = async () => {
 
         const updatedRole = await prisma.role.update({
             where: { id: roleId },
-            data: { name }
+            data: data
         });
 
         return updatedRole;

@@ -1,11 +1,12 @@
 import { catchAsync } from "../utils/catchAsync.js";
 import type { Request,Response } from "express";
 import { createCategoryService, deleteCategoryByIdService, getAllCategoryService, getCategoryByIdService, updateCategoryService } from "../services/reportCategory.services.js";
+import type { CreateCategoryDTO, UpdateCategoryDTO } from "../schemas/category.schema.js";
 
     export const createCategory = catchAsync(async(req:Request,res:Response) =>{
-        const {name} = req.body;
+        const data:CreateCategoryDTO = req.body;
 
-        const newCategory = await createCategoryService(name)
+        const newCategory = await createCategoryService(data)
 
         res.status(201).json({
             message: "category created",
@@ -31,11 +32,11 @@ import { createCategoryService, deleteCategoryByIdService, getAllCategoryService
 
     export const updateCategory = catchAsync(async(req:Request,res:Response) =>{
         const categoryId = Number(req.params.categoryId);
-        const {name} = req.body;
+        const data: UpdateCategoryDTO = req.body;
 
 
 
-        const updatedCategory = await updateCategoryService(categoryId,name)
+        const updatedCategory = await updateCategoryService(categoryId,data)
 
         res.status(200).json({
             message: "Category updated successfully",

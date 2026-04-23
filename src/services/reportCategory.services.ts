@@ -1,12 +1,13 @@
 import { prisma } from "../config/prisma.js";
+import type { CreateCategoryDTO, UpdateCategoryDTO } from "../schemas/category.schema.js";
 import { AppError } from "../utils/appError.js";
 
 
 
-export const createCategoryService = async(name:string) =>{
+export const createCategoryService = async(data:CreateCategoryDTO) =>{
 
         const newCategory = await prisma.reportCategory.create({
-            data:{name}
+            data: data
         })
 
         return newCategory;
@@ -34,7 +35,7 @@ export const createCategoryService = async(name:string) =>{
         
     }
 
-    export const updateCategoryService = async(categoryId:number,name:string) =>{
+    export const updateCategoryService = async(categoryId:number,data:UpdateCategoryDTO) =>{
         
 
         const category = await prisma.reportCategory.findFirst({
@@ -45,7 +46,7 @@ export const createCategoryService = async(name:string) =>{
 
         const updatedCategory = await prisma.reportCategory.update({
             where:{id:categoryId, deletedAt:null},
-            data:{name}
+            data: data
         })
 
         return updatedCategory;
