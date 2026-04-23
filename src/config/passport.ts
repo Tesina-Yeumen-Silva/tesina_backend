@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { prisma } from './prisma.js';
 import { signAccessToken } from "../utils/jwt.js";
-import { generateRefreshToken } from "../services/auth.service.js";
+import { generateRefreshTokenService } from "../services/auth.service.js";
 
 passport.use(
     new GoogleStrategy(
@@ -14,9 +14,9 @@ passport.use(
         async (_accessToken, _refreshToken, profile, done) => {
             try {
                 const email = profile.emails?.[0]?.value;
-                const name = profile.name?.givenName;
+                
                 if (!email) return done(new Error("Could not obtain the Google email"));
-
+                const name = profile.name?.givenName || profile.displayName || email.split('@')[0] || "Usuario";
                 const authProvider = await prisma.authProvider.findFirst({
                     where: { 
                         provider: "google", 
@@ -35,8 +35,8 @@ passport.use(
                 if (authProvider) {
                     const user = authProvider.user;
                     const token = signAccessToken({ userId: user.id, email: user.email, role: user.role.name });
-                    const refreshToken = await generateRefreshToken(user!.id);
-                    return done(null, { token, refreshToken, user: { id: user.id, email: user.email, role: user.role.name } });
+                    const refreshToken = await generateRefreshTokenService(user!.id);
+                    return done(null, { token, refreshToken, userId: user.id, email: user.email, role: user.role.name });
                 }
 
                 const defaultRole = await prisma.role.findUnique({ where: { name: "user" } });
@@ -69,8 +69,8 @@ passport.use(
                 });
 
                 const token = signAccessToken({ userId: newUser.id, email: newUser.email, role: defaultRole.name });
-                const refreshToken = await generateRefreshToken(newUser!.id);
-                return done(null, { token, refreshToken, user: { id: newUser.id, email: newUser.email, role: defaultRole.name } });
+                const refreshToken = await generateRefreshTokenService(newUser!.id);
+                return done(null, { token, refreshToken, userId: newUser.id, email: newUser.email, role: defaultRole.name });
             } catch (error) {
                 return done(error as Error);
             }
