@@ -2,8 +2,8 @@ import type { Request, Response } from "express";
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { prisma } from "../config/prisma.js";
-import { createReportService } from "../services/report.services.js";
-import type { CreateReportDTO } from "../schemas/report.schema.js";
+import { createReportService, getAllReportService, getMapMarkersService, getReportByIdService } from "../services/report.services.js";
+import type { CreateReportDTO, GetReportsQueryDTO } from "../schemas/report.schema.js";
 
 /*if(!req.user) throw new AppError("User not found",400)
 const userId = req.user.userId;*/
@@ -26,11 +26,44 @@ export const createReport = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getAllReport = catchAsync(
-  async (req: Request, res: Response) => {},
+  async (req: Request, res: Response) => {
+    const queryData = req.query as unknown as GetReportsQueryDTO;
+
+    const result = await getAllReportService(queryData);
+
+    res.status(200).json({
+        data: result.reports,
+        meta: {
+            currentPage: result.page,
+            totalPages: Math.ceil(result.totalReports / result.limit),
+            totalItems: result.totalReports
+        }
+    });
+  },
+);
+
+export const getMapMarkers = catchAsync(
+  async (req: Request, res: Response) => {
+    const queryData = req.query as unknown as GetReportsQueryDTO;
+
+    const result = await getMapMarkersService(queryData);
+
+    res.status(200).json({
+      data: result
+    })
+  }
 );
 
 export const getReportById = catchAsync(
-  async (req: Request, res: Response) => {},
+  async (req: Request, res: Response) => {
+    const reportId = Number(req.params.reportId);
+
+    const report = await getReportByIdService(reportId);
+
+    res.status(200).json({
+      data:report
+    })
+  },
 );
 
 export const updateReport = catchAsync(

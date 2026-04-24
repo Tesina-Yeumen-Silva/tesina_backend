@@ -15,6 +15,17 @@ export const reportSchema = z.object({
     deletedAt: z.date().optional(),
 });
 
+export const getReportQuerySchema = z.object({
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(100).default(20),
+    minLat: z.coerce.number().optional(),
+    maxLat: z.coerce.number().optional(),
+    minLng: z.coerce.number().optional(),
+    maxLng: z.coerce.number().optional()
+})
+
+export type GetReportsQueryDTO = z.infer<typeof getReportQuerySchema>;
+
 
 export const createReportSchema = reportSchema.omit({
     id: true,

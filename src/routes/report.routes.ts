@@ -1,64 +1,59 @@
 import { Router } from "express";
-import { createReport,getAllReport,getReportById,updateReport,deleteReportById,changeState } from "../controllers/report.controller.js";
-import { toggleAdhesion, getAdhesionsByReportId } from "../controllers/reportAdhesion.controller.js";
-import { getAllHistory,getHistoryByReportId } from "../controllers/reportHistory.controller.js";
+import {
+  createReport,
+  getAllReport,
+  getReportById,
+  updateReport,
+  deleteReportById,
+  changeState,
+  getMapMarkers
+} from "../controllers/report.controller.js";
+import {
+  toggleAdhesion,
+  getAdhesionsByReportId,
+} from "../controllers/reportAdhesion.controller.js";
+import {
+  getAllHistory,
+  getHistoryByReportId,
+} from "../controllers/reportHistory.controller.js";
 import { uploadMiddleware } from "../middleware/upload.middleware.js";
-import { validateBody } from "../middleware/validate.middleware.js";
-import { createReportSchema } from "../schemas/report.schema.js";
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from "../middleware/validate.middleware.js";
+import {
+  createReportSchema,
+  getReportQuerySchema,
+} from "../schemas/report.schema.js";
+import { generateIdSchema } from "../schemas/common.schema.js";
 const router = Router();
 
 router.post(
-    '/',
-    uploadMiddleware.single('image'),
-    validateBody(createReportSchema),
-    createReport
-)
+  "/",
+  uploadMiddleware.single("image"),
+  validateBody(createReportSchema),
+  createReport,
+);
 
-router.get(
-    '/',
-    getAllReport
-)
+router.get("/", validateQuery(getReportQuerySchema), getAllReport);
 
-router.get(
-    '/:reportId',
-    getReportById
-)
+router.get('/markers', validateQuery(getReportQuerySchema), getMapMarkers);
 
-router.put(
-    '/:reportId',
-    updateReport
-)
+router.get("/:reportId",validateParams(generateIdSchema("reportId")), getReportById);
 
-router.delete(
-    '/:reportId',
-    deleteReportById
-)
+router.put("/:reportId", updateReport);
 
-router.put(
-    '/:reportId/state',
-    changeState
-)
+router.delete("/:reportId", deleteReportById);
 
-router.get(
-    '/',
-    getAllHistory
-)
+router.put("/:reportId/state", changeState);
 
-router.get(
-    '/:reportId',
-    getHistoryByReportId
-)
+router.get("/", getAllHistory);
 
-router.post(
-    '/:reportId/adhesions',
-    toggleAdhesion
-)
+router.get("/:reportId", getHistoryByReportId);
 
-router.get(
-    '/:reportId/adhesions',
-    getAdhesionsByReportId
-)
+router.post("/:reportId/adhesions", toggleAdhesion);
 
-
+router.get("/:reportId/adhesions", getAdhesionsByReportId);
 
 export default router;
