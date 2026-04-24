@@ -10,9 +10,6 @@ export const reportSchema = z.object({
     isAnonymous: z.coerce.boolean(),
     userId: z.coerce.number().positive("El ID de usuario es inválido"),
     categoryId: z.coerce.number(),
-    createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-    deletedAt: z.date().optional(),
 });
 
 export const getReportQuerySchema = z.object({
@@ -30,9 +27,6 @@ export type GetReportsQueryDTO = z.infer<typeof getReportQuerySchema>;
 export const createReportSchema = reportSchema.omit({
     id: true,
     imageUrl: true,
-    createdAt: true,
-    updatedAt: true,
-    deletedAt:true
 });
 
 
