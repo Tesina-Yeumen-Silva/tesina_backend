@@ -2,7 +2,7 @@ import { prisma } from "../config/prisma.js";
 import { AppError } from "../utils/appError.js";
 import { uploadImageToCloud } from "./cloud.services.js";
 import { optimizeImageService } from "./image.services.js";
-import type{ CreateReportDTO, GetReportsQueryDTO } from "../schemas/report.schema.js";
+import type{ ChangeStateDTO, CreateReportDTO, GetReportsQueryDTO } from "../schemas/report.schema.js";
 import { Prisma } from "../generated/prisma/client.js";
 
 
@@ -76,7 +76,18 @@ export const getAllReportService = async(query: GetReportsQueryDTO) => {
 export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
     const { minLat, maxLat, minLng, maxLng } = query;
 
-    const whereClause: Prisma.ReportWhereInput = { deletedAt: null };
+    const whereClause: Prisma.ReportWhereInput = { 
+        deletedAt: null,
+        reportHistory: {
+            none: {
+                state: {
+                    name: {
+                        in: ['Solved', 'Rejected', 'Duplicated']
+                    }
+                }
+            }
+        }
+    };
 
     if (minLat && maxLat && minLng && maxLng) {
         whereClause.latitude = { gte: minLat, lte: maxLat };
@@ -92,11 +103,7 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
             reportHistory: {
                 orderBy: { createdAt: 'desc' },
                 take: 1,
-                select: {
-                    state: {
-                        select: { name: true } 
-                    }
-                }
+                select: { state: { select: { name: true } } }
             }
         }
     });
@@ -112,7 +119,7 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
 };
 
 export const getReportByIdService = async(reportId:number) => {
-    const report = prisma.report.findFirst({
+    const report = await prisma.report.findFirst({
         where:{id:reportId, deletedAt:null},
         include:{reportHistory:{
             orderBy:{createdAt:"desc"},
@@ -121,13 +128,52 @@ export const getReportByIdService = async(reportId:number) => {
         }}
     })
 
-    if(!report) throw new AppError("Report not found",400)
+    if(!report) throw new AppError("Report not found",404)
 
     return report;
 }
 
-export const updateReportService = async() => {}
+export const deleteReportByIdService = async(reportId:number,userId:number) => {
+    const report = await prisma.report.findFirst({
+        where:{id: reportId, userId, deletedAt:null},
+        include:{reportHistory:{
+            orderBy:{createdAt:"desc"},
+            take:1,
+            include:{state:true}
+        }}
+    })
 
-export const deleteReportByIdService = async() => {}
+    if(!report) throw new AppError("Only owner can delete this report",401)
 
-export const changeStateService = () => {}
+    const currentState = report.reportHistory[0]?.state?.name;
+
+    if (currentState !== "Pending") { 
+        throw new AppError("Can't delete report in progress", 403);
+    }
+
+    await prisma.report.update({
+        where:{id:reportId, deletedAt:null},
+        data: {deletedAt: new Date()}
+    })
+}
+
+export const changeStateService = async(reportId:number,data:ChangeStateDTO) => {
+    const report = await prisma.report.findFirst({
+        where:{id:reportId, deletedAt:null}
+    });
+
+    if(!report) throw new AppError("Report not found",404);
+
+    const newHistory = await prisma.reportHistory.create({
+        data:{
+            reportId:reportId,
+            stateId:data.stateId,
+            observation: data.observation || "Cambio administrativo"
+        },
+        include:{
+            state:true
+        }
+    })
+
+    return newHistory;
+}

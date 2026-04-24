@@ -3,19 +3,10 @@ import {
   createReport,
   getAllReport,
   getReportById,
-  updateReport,
   deleteReportById,
   changeState,
-  getMapMarkers
+  getMapMarkers,
 } from "../controllers/report.controller.js";
-import {
-  toggleAdhesion,
-  getAdhesionsByReportId,
-} from "../controllers/reportAdhesion.controller.js";
-import {
-  getAllHistory,
-  getHistoryByReportId,
-} from "../controllers/reportHistory.controller.js";
 import { uploadMiddleware } from "../middleware/upload.middleware.js";
 import {
   validateBody,
@@ -25,9 +16,16 @@ import {
 import {
   createReportSchema,
   getReportQuerySchema,
+  changeStateSchema,
 } from "../schemas/report.schema.js";
 import { generateIdSchema } from "../schemas/common.schema.js";
+import historyRouter from "./reportHistory.routes.js";
+import adhesionRouter from "./reportAdhesion.routes.js";
+
 const router = Router();
+
+router.use("/:reportId/history", historyRouter);
+router.use("/:reportId/adhesions", adhesionRouter);
 
 router.post(
   "/",
@@ -38,22 +36,27 @@ router.post(
 
 router.get("/", validateQuery(getReportQuerySchema), getAllReport);
 
-router.get('/markers', validateQuery(getReportQuerySchema), getMapMarkers);
+router.get("/markers", validateQuery(getReportQuerySchema), getMapMarkers);
 
-router.get("/:reportId",validateParams(generateIdSchema("reportId")), getReportById);
+router.get(
+  "/:reportId",
+  validateParams(generateIdSchema("reportId")),
+  getReportById,
+);
 
-router.put("/:reportId", updateReport);
+router.delete(
+  "/:reportId",
+  validateParams(generateIdSchema("reportId")),
+  deleteReportById,
+);
 
-router.delete("/:reportId", deleteReportById);
+router.put(
+  "/:reportId/state",
+  validateParams(generateIdSchema("reportId")),
+  validateBody(changeStateSchema),
+  changeState,
+);
 
-router.put("/:reportId/state", changeState);
 
-router.get("/", getAllHistory);
-
-router.get("/:reportId", getHistoryByReportId);
-
-router.post("/:reportId/adhesions", toggleAdhesion);
-
-router.get("/:reportId/adhesions", getAdhesionsByReportId);
 
 export default router;

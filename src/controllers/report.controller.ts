@@ -2,8 +2,8 @@ import type { Request, Response } from "express";
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { prisma } from "../config/prisma.js";
-import { createReportService, getAllReportService, getMapMarkersService, getReportByIdService } from "../services/report.services.js";
-import type { CreateReportDTO, GetReportsQueryDTO } from "../schemas/report.schema.js";
+import { changeStateService, createReportService, deleteReportByIdService, getAllReportService, getMapMarkersService, getReportByIdService } from "../services/report.services.js";
+import type { ChangeStateDTO, CreateReportDTO, GetReportsQueryDTO } from "../schemas/report.schema.js";
 
 /*if(!req.user) throw new AppError("User not found",400)
 const userId = req.user.userId;*/
@@ -66,14 +66,32 @@ export const getReportById = catchAsync(
   },
 );
 
-export const updateReport = catchAsync(
-  async (req: Request, res: Response) => {},
-);
-
 export const deleteReportById = catchAsync(
-  async (req: Request, res: Response) => {},
+  async (req: Request, res: Response) => {
+    /*if(!req.user) throw new AppError("User not found",400)
+    const userId = req.user.userId;*/
+    const reportId = Number(req.params.reportId);
+    const {userId} = req.body;
+
+    await deleteReportByIdService(reportId,userId);
+
+    res.status(200).json({
+      message:"Report deleted successfully"
+    })
+  },
 );
 
 export const changeState = catchAsync(
-  async (req: Request, res: Response) => {},
+  async (req: Request, res: Response) => {
+    const reportId = Number(req.params.reportId);
+    const data : ChangeStateDTO = req.body;
+
+    const updatedState = await changeStateService(reportId,data)
+
+    res.status(200).json({
+      message:" State updated successfully",
+      data: updatedState
+    })
+  },
+
 );

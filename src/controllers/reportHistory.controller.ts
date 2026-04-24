@@ -1,6 +1,15 @@
-import type { Request,Response } from "express";
-import { AppError } from "../utils/appError.js";
+import type { Request, Response } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
+import { getHistoryByReportIdService } from "../services/reportHistory.services.js";
 
-    export const getAllHistory = catchAsync((req:Request,res:Response) => {})
-    export const getHistoryByReportId = catchAsync((req:Request,res:Response) => {})
+export const getHistoryByReportId = catchAsync(
+  async (req: Request, res: Response) => {
+    const reportId = Number(req.params.reportId);
+
+    const reportHistory = await getHistoryByReportIdService(reportId)
+
+    res.status(200).json({
+      data: reportHistory
+    })
+  },
+);
