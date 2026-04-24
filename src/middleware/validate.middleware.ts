@@ -13,7 +13,12 @@ const validate =
       if (field === "params") {
         req.params = parsed as ParamsDictionary;
       } else if (field === "query") {
-        req.query = parsed as ParsedQs;
+        Object.defineProperty(req, 'query', {
+            value: parsed as ParsedQs,
+            writable: true,
+            enumerable: true,
+            configurable: true
+        });
       } else {
         req.body = parsed;
       }
