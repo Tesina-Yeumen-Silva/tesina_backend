@@ -15,6 +15,12 @@ async function main() {
     create: { name: "admin" },
   });
 
+  const muniRole = await prisma.role.upsert({
+    where: { name: "muni" },
+    update: {},
+    create: { name: "muni" },
+  });
+
   await prisma.reportCategory.upsert({
     where: {name:"acequia"},
     update:{},

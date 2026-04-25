@@ -1,39 +1,54 @@
-import express from 'express';
-import { createRole,getAllRole,getRoleById,updateRole,deleteRoleById } from '../controllers/role.controller.js';
-import { validateParams, validateBody } from '../middleware/validate.middleware.js';
-import { createRoleSchema, updateRoleSchema } from '../schemas/role.schema.js';
-import { generateIdSchema } from '../schemas/common.schema.js';
+import express from "express";
+import {
+  createRole,
+  getAllRole,
+  getRoleById,
+  updateRole,
+  deleteRoleById,
+} from "../controllers/role.controller.js";
+import {
+  validateParams,
+  validateBody,
+} from "../middleware/validate.middleware.js";
+import { createRoleSchema, updateRoleSchema } from "../schemas/role.schema.js";
+import { generateIdSchema } from "../schemas/common.schema.js";
+import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 router.post(
-    '/',
-    validateBody(createRoleSchema),
-    createRole
-)
+  "/",
+  authenticateJwt,
+  restrictTo("admin"),
+  validateBody(createRoleSchema),
+  createRole,
+);
+
+router.get("/", authenticateJwt, restrictTo("admin"), getAllRole);
 
 router.get(
-    '/',
-    getAllRole
-)
-
-router.get(
-    '/:roleId',
-    validateParams(generateIdSchema("roleId")),
-    getRoleById
-)
+  "/:roleId",
+  authenticateJwt,
+  restrictTo("admin"),
+  validateParams(generateIdSchema("roleId")),
+  getRoleById,
+);
 
 router.put(
-    '/:roleId',
-    validateParams(generateIdSchema("roleId")),
-    validateBody(updateRoleSchema),
-    updateRole
-)
+  "/:roleId",
+  authenticateJwt,
+  restrictTo("admin"),
+  validateParams(generateIdSchema("roleId")),
+  validateBody(updateRoleSchema),
+  updateRole,
+);
 
 router.delete(
-    '/:roleId',
-    validateParams(generateIdSchema("roleId")),
-    deleteRoleById
-)
+  "/:roleId",
+  authenticateJwt,
+  restrictTo("admin"),
+  validateParams(generateIdSchema("roleId")),
+  deleteRoleById,
+);
 
 export default router;

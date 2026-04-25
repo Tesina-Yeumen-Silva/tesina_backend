@@ -21,6 +21,7 @@ import {
 import { generateIdSchema } from "../schemas/common.schema.js";
 import historyRouter from "./reportHistory.routes.js";
 import adhesionRouter from "./reportAdhesion.routes.js";
+import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -30,13 +31,14 @@ router.use("/:reportId/adhesions", adhesionRouter);
 router.post(
   "/",
   uploadMiddleware.single("image"),
+  authenticateJwt,
   validateBody(createReportSchema),
   createReport,
 );
 
-router.get("/", validateQuery(getReportQuerySchema), getAllReport);
+router.get("/", authenticateJwt ,validateQuery(getReportQuerySchema), getAllReport);
 
-router.get("/markers", validateQuery(getReportQuerySchema), getMapMarkers);
+router.get("/markers",validateQuery(getReportQuerySchema), getMapMarkers);
 
 router.get(
   "/:reportId",
@@ -46,12 +48,15 @@ router.get(
 
 router.delete(
   "/:reportId",
+  authenticateJwt,
   validateParams(generateIdSchema("reportId")),
   deleteReportById,
 );
 
 router.put(
   "/:reportId/state",
+  authenticateJwt,
+  restrictTo("admin","muni"),
   validateParams(generateIdSchema("reportId")),
   validateBody(changeStateSchema),
   changeState,

@@ -6,7 +6,7 @@ import type{ ChangeStateDTO, CreateReportDTO, GetReportsQueryDTO } from "../sche
 import { Prisma } from "../generated/prisma/client.js";
 
 
-export const createReportService = async (data: CreateReportDTO) => {
+export const createReportService = async (data: CreateReportDTO,userId:number) => {
     const createdState = await prisma.reportState.findFirst({
         where: { name: "Pending" }
     });
@@ -24,7 +24,7 @@ export const createReportService = async (data: CreateReportDTO) => {
             description: data.description,
             imageUrl: cloudUrl,
             isAnonymous: data.isAnonymous,
-            userId: Number(data.userId),
+            userId: userId,
             categoryId: Number(data.categoryId),
             reportHistory: {
                 create: {
@@ -148,7 +148,7 @@ export const deleteReportByIdService = async(reportId:number,userId:number) => {
     const currentState = report.reportHistory[0]?.state?.name;
 
     if (currentState !== "Pending") { 
-        throw new AppError("Can't delete report in progress", 403);
+        throw new AppError("Cant delete report in progress", 403);
     }
 
     await prisma.report.update({
