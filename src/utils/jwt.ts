@@ -8,7 +8,7 @@ export interface JwtPayload {
 }
 
 export function signAccessToken(payload: JwtPayload) {
-  return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "15m" });
+  return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "1h" });
 }
 
 export function signRefreshToken() {
