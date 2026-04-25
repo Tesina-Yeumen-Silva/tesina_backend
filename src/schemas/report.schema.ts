@@ -8,7 +8,6 @@ export const reportSchema = z.object({
   description: z.string(),
   imageUrl: z.string(),
   isAnonymous: z.coerce.boolean(),
-  userId: z.coerce.number().positive("El ID de usuario es inválido"),
   categoryId: z.coerce.number(),
 });
 

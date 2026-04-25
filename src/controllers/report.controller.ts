@@ -5,11 +5,12 @@ import { prisma } from "../config/prisma.js";
 import { changeStateService, createReportService, deleteReportByIdService, getAllReportService, getMapMarkersService, getReportByIdService } from "../services/report.services.js";
 import type { ChangeStateDTO, CreateReportDTO, GetReportsQueryDTO } from "../schemas/report.schema.js";
 
-/*if(!req.user) throw new AppError("User not found",400)
-const userId = req.user.userId;*/
+
 
 export const createReport = catchAsync(async (req: Request, res: Response) => {
   if (!req.file) throw new AppError("La imagen es obligatoria", 400);
+  if(!req.user) throw new AppError("User not found",400)
+  const userId = req.user.userId;
 
   const reportData: CreateReportDTO = {
     ...req.body,
@@ -17,7 +18,7 @@ export const createReport = catchAsync(async (req: Request, res: Response) => {
     mimetype: req.file.mimetype,
   };
 
-  const newReport = await createReportService(reportData);
+  const newReport = await createReportService(reportData,userId);
 
   res.status(201).json({
     message: "Report created successfully",
@@ -68,10 +69,10 @@ export const getReportById = catchAsync(
 
 export const deleteReportById = catchAsync(
   async (req: Request, res: Response) => {
-    /*if(!req.user) throw new AppError("User not found",400)
-    const userId = req.user.userId;*/
+    if(!req.user) throw new AppError("User not found",400)
+    const userId = req.user.userId;
+    console.log(userId)
     const reportId = Number(req.params.reportId);
-    const {userId} = req.body;
 
     await deleteReportByIdService(reportId,userId);
 
