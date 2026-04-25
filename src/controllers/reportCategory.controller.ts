@@ -1,15 +1,12 @@
 import { catchAsync } from "../utils/catchAsync.js";
 import type { Request,Response } from "express";
-import { prisma } from "../config/prisma.js";
-import { AppError } from "../utils/appError.js";
+import { createCategoryService, deleteCategoryByIdService, getAllCategoryService, getCategoryByIdService, updateCategoryService } from "../services/reportCategory.services.js";
+import type { CreateCategoryDTO, UpdateCategoryDTO } from "../schemas/category.schema.js";
 
-class ReportCategory{
-    createCategory = catchAsync(async(req:Request,res:Response) =>{
-        const {name} = req.body;
+    export const createCategory = catchAsync(async(req:Request,res:Response) =>{
+        const data:CreateCategoryDTO = req.body;
 
-        const newCategory = await prisma.reportCategory.create({
-            data:{name}
-        })
+        const newCategory = await createCategoryService(data)
 
         res.status(201).json({
             message: "category created",
@@ -17,42 +14,29 @@ class ReportCategory{
         });
     })
 
-    getAllCategory = catchAsync(async(req:Request,res:Response) =>{
-        const categories = await prisma.reportCategory.findMany({
-            where:{deletedAt:null}
-        }) 
+    export const getAllCategory = catchAsync(async(req:Request,res:Response) =>{
+        const categories = await getAllCategoryService()
 
         res.status(200).json({ data: categories });
     })
     
-    getCategoryById = catchAsync(async(req:Request,res:Response) =>{
+    export const getCategoryById = catchAsync(async(req:Request,res:Response) =>{
         const categoryId = Number(req.params.categoryId);
 
-        const category = await prisma.reportCategory.findFirst({
-            where:{id:categoryId,deletedAt:null}
-        })
-
-        if (!category) throw new AppError("Category not found", 404);
+        const category = await getCategoryByIdService(categoryId)
 
     
         res.status(200).json({ data: category });
         
     })
 
-    updateCategory = catchAsync(async(req:Request,res:Response) =>{
+    export const updateCategory = catchAsync(async(req:Request,res:Response) =>{
         const categoryId = Number(req.params.categoryId);
-        const {name} = req.body;
+        const data: UpdateCategoryDTO = req.body;
 
-        const category = await prisma.reportCategory.findFirst({
-            where:{id:categoryId,deletedAt:null}
-        })
 
-        if (!category) throw new AppError("Category not found", 404);
 
-        const updatedCategory = await prisma.reportCategory.update({
-            where:{id:categoryId, deletedAt:null},
-            data:{name}
-        })
+        const updatedCategory = await updateCategoryService(categoryId,data)
 
         res.status(200).json({
             message: "Category updated successfully",
@@ -60,19 +44,10 @@ class ReportCategory{
         });
     })
 
-    deleteCategoryById = catchAsync(async(req:Request,res:Response) =>{
+    export const deleteCategoryById = catchAsync(async(req:Request,res:Response) =>{
         const categoryId = Number(req.params.categoryId);
 
-        const category = await prisma.reportCategory.findFirst({
-            where:{id:categoryId,deletedAt:null}
-        })
-
-        if (!category) throw new AppError("Category not found", 404);
-
-        await prisma.reportCategory.update({
-            where:{id:categoryId, deletedAt:null},
-            data:{deletedAt: new Date()}
-        })
+        await deleteCategoryByIdService(categoryId)
 
         res.status(200).json({
             message: "Category deleted successfully",
@@ -80,6 +55,4 @@ class ReportCategory{
 
     })
 
-}
 
-export default new ReportCategory();

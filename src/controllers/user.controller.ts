@@ -1,123 +1,53 @@
-import type { Request,Response } from "express";
-import {prisma} from '../config/prisma.js';
-import { AppError } from "../utils/appError.js";
+import type { Request, Response } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
-import { registerLocal } from "../services/auth.service.js";
-import bcrypt from "bcryptjs";
+import { registerLocalService } from "../services/auth.service.js";
+import { deleteUserByIdService, getAllUsersService, getUserByEmailService, getUserByIdService, updatedUserService, updatePasswordService } from "../services/user.services.js";
+import type{ CreateUserDTO, UpdateUserDTO, UpdatePasswordDTO } from "../schemas/user.schema.js";
 
-class UserController{
-    createUser = catchAsync(async (req:Request,res:Response) =>{
-        const {name,email,password,roleId} = req.body;
+export const createUser = catchAsync(async (req: Request, res: Response) => {
+    const data: CreateUserDTO = req.body;
+    const result = await registerLocalService(data);
+    res.status(201).json({ data: result });
+});
 
-        const result = await registerLocal(email,password,name,roleId);
+export const getAllUser = catchAsync(async (req: Request, res: Response) => {
+    const users = await getAllUsersService();
+    res.status(200).json({ data: users });
+});
 
-        res.status(201).json({data:result});
-    })
+export const getUserById = catchAsync(async (req: Request, res: Response) => {
+    const userId  = Number(req.params.userId);
+    const user = await getUserByIdService(userId);
+    res.status(200).json({ data: user });
+});
 
+export const updateUser = catchAsync(async (req: Request, res: Response) => {
+    const userId  = Number(req.params.userId);
+    const data: UpdateUserDTO = req.body;
 
-    getAllUser = catchAsync(async (req:Request,res:Response) =>{
-        const users = await prisma.user.findMany({
-            where:{deletedAt:null}
-        })
-
-        res.status(200).json({data:users});
-    })
-
-    getUserById = catchAsync(async (req:Request,res:Response) =>{
-        const userId = Number(req.params.userId);
-        const user = await prisma.user.findFirst({
-            where:{
-                id:userId,
-                deletedAt:null
-            }
-        })
-
-        if(!user) throw new AppError("user not found",404);
-
-        res.status(200).json({data:user})
-    })
-
-    updateUser = catchAsync(async (req:Request,res:Response) =>{
-        const {email,name,roleId} = req.body;
-        const userId = Number(req.params.userId);
-
-        const user = await prisma.user.findFirst({
-            where:{id:userId, deletedAt:null}
-        });
-        if(!user) throw new AppError("user not found",404);
-
-        const updatedUser = await prisma.user.update({
-            where:{id:userId},
-            data:{name,email,roleId}
-        })
-
-        res.status(200).json({
-            message: "User updated successfully",
-            data: updatedUser
-        });
-    })
-
-    updatePasword = catchAsync(async (req: Request, res: Response) => {
-        const {password} = req.body;
-        const userId = Number(req.params.userId);
-        
-
-        const provider = await prisma.authProvider.findFirst({
-            where:{userId, provider:"local"}
-        })
-        
-
-        if(!provider) throw new AppError("user not found",404);
-
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        await prisma.authProvider.update({
-            where:{id:provider.id},
-            data:{passwordHash:passwordHash}
-        })
-        
-        res.status(200).json({
-            message: "Password updated successfully",
-            
-        });
-
+    const updatedUser = await updatedUserService(userId, data);
+    res.status(200).json({
+        message: "User updated successfully",
+        data: updatedUser
     });
+});
 
-    deleteUserById = catchAsync(async (req:Request,res:Response) =>{
-        const userId = Number(req.params.userId);
+export const updatePassword = catchAsync(async (req: Request, res: Response) => {
+    const userId  = Number(req.params.userId);
+    const data: UpdatePasswordDTO = req.body;
 
-        const user = await prisma.user.findFirst({
-            where:{id:userId, deletedAt:null}
-        })
-        if(!user) throw new AppError("user not found",404);
+    await updatePasswordService(userId, data);
+    res.status(200).json({ message: "Password updated successfully" });
+});
 
-        await prisma.user.update({
-            where:{id:userId},
-            data:{deletedAt: new Date()}
-        })
+export const deleteUserById = catchAsync(async (req: Request, res: Response) => {
+    const userId  = Number(req.params.userId);
+    await deleteUserByIdService(userId);
+    res.status(200).json({ message: "User deleted successfully" });
+});
 
-        res.status(200).json({
-            message: "User deleted successfully"
-        });
-
-
-    })
-
-    getUserByEmail = catchAsync(async (req:Request,res:Response) =>{
-        const email = req.params.email as string;
-
-        const user = await prisma.user.findFirst({
-            where:{email, deletedAt:null}
-        })
-
-        if(!user) throw new AppError("user not found",404);
-
-        res.status(200).json({
-            data: user
-        });
-    })
-}
-
-
-
-export default new UserController();
+export const getUserByEmail = catchAsync(async (req: Request, res: Response) => {
+    const email = req.params.email as string;
+    const user = await getUserByEmailService(email);
+    res.status(200).json({ data: user });
+});

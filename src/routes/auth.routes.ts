@@ -1,15 +1,16 @@
 import { Router } from "express";
-import authController from "../controllers/auth.controller.js";
-import { validateLocalAuthLogin, validateLocalAuthRegister } from "../middleware/Validators/auth.validator.js";
+import { registerLocal,loginLocal,refreshToken,logout, googleCallback, googleFailed } from "../controllers/auth.controller.js";
 import passport from "../config/passport.js";
 import { authenticateJwt } from "../middleware/auth.middleware.js";
+import { validateBody } from "../middleware/validate.middleware.js";
+import { registerLocalSchema, loginLocalSchema, tokenSchema } from "../schemas/auth.schema.js";
 
 const router = Router();
 
-router.post("/register", validateLocalAuthRegister, authController.registerLocalController);
-router.post("/login", validateLocalAuthLogin, authController.loginLocalController);
-router.post("/refresh", authController.refreshTokenController);
-router.post("/logout", authenticateJwt, authController.logoutController);
+router.post("/register",validateBody(registerLocalSchema), registerLocal);
+router.post("/login",validateBody(loginLocalSchema), loginLocal);
+router.post("/refresh",validateBody(tokenSchema), refreshToken);
+router.post("/logout",authenticateJwt,validateBody(tokenSchema), authenticateJwt, logout);
 
 router.get(
     "/google",
@@ -19,9 +20,9 @@ router.get(
 router.get(
     "/google/callback",
     passport.authenticate("google", { failureRedirect: "/api/auth/google/failed", session: false }),
-    authController.googleCallbackController 
+    googleCallback 
 );
 
-router.get("/google/failed", authController.googleFailedController); 
+router.get("/google/failed", googleFailed); 
 
 export default router;

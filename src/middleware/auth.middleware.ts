@@ -36,3 +36,15 @@ export function authenticateJwt(req:Request,res:Response,next:NextFunction){
             res.status(401).json({ message: "Invalid or expired token" });
     }
 }
+
+export const restrictTo = (...allowedRoles: string[]) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        const userRole = req.user?.role;
+
+        if (!userRole || !allowedRoles.includes(userRole)) {
+            return next(new AppError("No tienes permisos suficientes para realizar esta acción", 403));
+        }
+
+        next();
+    };
+};

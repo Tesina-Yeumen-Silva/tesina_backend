@@ -1,41 +1,25 @@
 import { Router } from "express";
-import userController from "../controllers/user.controller.js";
+import { createUser, getAllUser, getUserByEmail, getUserById, updatePassword, updateUser, deleteUserById } from "../controllers/user.controller.js";
+import { validateBody, validateParams } from "../middleware/validate.middleware.js";
+import { generateIdSchema } from "../schemas/common.schema.js";
+import { 
+    createUserSchema, updateUserSchema, updatePasswordSchema, emailParamSchema
+} from "../schemas/user.schema.js";
 
 const router = Router();
 
-router.post(
-    '/',
-    userController.createUser
-)
+router.post('/', validateBody(createUserSchema), createUser);
 
-router.get(
-    '/',
-    userController.getAllUser
-)
+router.get('/', getAllUser);
 
-router.get(
-    '/:userId',
-    userController.getUserById
-)
+router.get('/:userId', validateParams(generateIdSchema("userId")), getUserById);
 
-router.get(
-    '/email/:email',
-    userController.getUserByEmail
-)
+router.get('/email/:email', validateParams(emailParamSchema), getUserByEmail);
 
-router.put(
-    '/:userId',
-    userController.updateUser
-)
+router.put('/:userId', validateParams(generateIdSchema("userId")), validateBody(updateUserSchema), updateUser);
 
-router.put(
-    '/password/:userId',
-    userController.updatePasword
-)
+router.put('/:userId/password', validateParams(generateIdSchema("userId")), validateBody(updatePasswordSchema), updatePassword);
 
-router.delete(
-    '/:userId',
-    userController.deleteUserById
-)
+router.delete('/:userId', validateParams(generateIdSchema("userId")), deleteUserById);
 
 export default router;

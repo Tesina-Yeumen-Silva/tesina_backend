@@ -1,31 +1,39 @@
 import { Router } from "express";
-import reportCategoryController from "../controllers/reportCategory.controller.js";
+import { createCategory,getAllCategory,getCategoryById,updateCategory,deleteCategoryById } from "../controllers/reportCategory.controller.js";
+import { createCategorySchema, updateCategorySchema } from "../schemas/category.schema.js";
+import { validateBody,validateParams } from "../middleware/validate.middleware.js";
+import { generateIdSchema } from "../schemas/common.schema.js";
 
 const router = Router();
 
 router.post(
     '/',
-    reportCategoryController.createCategory
+    validateBody(createCategorySchema),
+    createCategory
 )
 
 router.get(
     '/',
-    reportCategoryController.getAllCategory
+    getAllCategory
 )
 
 router.get(
     '/:categoryId',
-    reportCategoryController.getCategoryById
+    validateParams(generateIdSchema("categoryId")),
+    getCategoryById
 )
 
 router.put(
     '/:categoryId',
-    reportCategoryController.updateCategory
+    validateParams(generateIdSchema("categoryId")),
+    validateBody(updateCategorySchema),
+    updateCategory
 )
 
 router.delete(
     '/:categoryId',
-    reportCategoryController.deleteCategoryById
+    validateParams(generateIdSchema("categoryId")),
+    deleteCategoryById
 )
 
 

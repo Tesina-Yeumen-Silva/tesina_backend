@@ -1,31 +1,39 @@
 import { Router } from "express";
-import reportStateController from "../controllers/reportState.controller.js";
+import { createState,getAllStates,getStateById,updateState,deleteStateById } from "../controllers/reportState.controller.js";
+import { createStateSchema, updateStateSchema } from "../schemas/state.schema.js";
+import { validateBody,validateParams } from "../middleware/validate.middleware.js";
+import { generateIdSchema } from "../schemas/common.schema.js";
 
 const router = Router();
 
 router.post(
     '/',
-    reportStateController.createState
+    validateBody(createStateSchema),
+    createState
 )
 
 router.get(
     '/',
-    reportStateController.getAllStates
+    getAllStates
 )
 
 router.get(
     '/:stateId',
-    reportStateController.getStateById
+    validateParams(generateIdSchema("stateId")),
+    getStateById
 )
 
 router.put(
     '/:stateId',
-    reportStateController.updateState
+    validateParams(generateIdSchema("stateId")),
+    validateBody(updateStateSchema),
+    updateState
 )
 
 router.delete(
     '/:stateId',
-    reportStateController.deleteStateById
+    validateParams(generateIdSchema("stateId")),
+    deleteStateById
 )
 
 

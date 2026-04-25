@@ -1,85 +1,62 @@
 import { catchAsync } from "../utils/catchAsync.js";
-import type { Request,Response } from "express";
-import { prisma } from "../config/prisma.js";
-import { AppError } from "../utils/appError.js";
+import type { Request, Response } from "express";
+import {
+  createStateService,
+  deleteStateByIdService,
+  getAllStatesServices,
+  getStateByIdService,
+  updatedStateService,
+} from "../services/reportState.services.js";
+import type {
+  CreateStateDTO,
+  UpdateStateDTO,
+} from "../schemas/state.schema.js";
 
-class ReportState{
-    createState = catchAsync(async(req:Request,res:Response) =>{
-        const {name,color} = req.body;
+export const createState = catchAsync(async (req: Request, res: Response) => {
+  const data: CreateStateDTO = req.body;
 
-        const newState = await prisma.reportState.create({
-            data:{name,color}
-        })
+  const newState = await createStateService(data);
 
-        res.status(201).json({
-            message: "State created",
-            data: newState
-        });
-    })
+  res.status(201).json({
+    message: "State created",
+    data: newState,
+  });
+});
 
-    getAllStates = catchAsync(async(req:Request,res:Response) =>{
-        const states = await prisma.reportState.findMany({
-            where:{deletedAt:null}
-        }) 
+export const getAllStates = catchAsync(async (req: Request, res: Response) => {
+  const states = await getAllStatesServices();
 
-        res.status(200).json({ data: states });
-    })
-    
-    getStateById = catchAsync(async(req:Request,res:Response) =>{
-        const stateId = Number(req.params.stateId);
+  res.status(200).json({ data: states });
+});
 
-        const state = await prisma.reportState.findFirst({
-            where:{id:stateId,deletedAt:null}
-        })
+export const getStateById = catchAsync(async (req: Request, res: Response) => {
+  const stateId = Number(req.params.stateId);
 
-        if (!state) throw new AppError("State not found", 404);
+  const state = await getStateByIdService(stateId);
 
-    
-        res.status(200).json({ data: state });
-        
-    })
+  res.status(200).json({ data: state });
+});
 
-    updateState = catchAsync(async(req:Request,res:Response) =>{
-        const stateId = Number(req.params.stateId);
-        const {name,color} = req.body;
+export const updateState = catchAsync(async (req: Request, res: Response) => {
+  const stateId = Number(req.params.stateId);
+  const data: UpdateStateDTO = req.body;
 
-        const state = await prisma.reportState.findFirst({
-            where:{id:stateId,deletedAt:null}
-        })
+  const updatedState = await updatedStateService(stateId, data);
 
-        if (!state) throw new AppError("State not found", 404);
+  res.status(200).json({
+    message: "State updated successfully",
+    data: updatedState,
+  });
+});
 
-        const updatedState = await prisma.reportState.update({
-            where:{id:stateId, deletedAt:null},
-            data:{name,color}
-        })
+export const deleteStateById = catchAsync(
+  async (req: Request, res: Response) => {
+    const stateId = Number(req.params.stateId);
 
-        res.status(200).json({
-            message: "State updated successfully",
-            data: updatedState
-        });
-    })
+    await deleteStateByIdService(stateId);
 
-    deleteStateById = catchAsync(async(req:Request,res:Response) =>{
-        const stateId = Number(req.params.stateId);
-
-        const state = await prisma.reportState.findFirst({
-            where:{id:stateId,deletedAt:null}
-        })
-
-        if (!state) throw new AppError("State not found", 404);
-
-        await prisma.reportState.update({
-            where:{id:stateId, deletedAt:null},
-            data:{deletedAt: new Date()}
-        })
-
-        res.status(200).json({
-            message: "State deleted successfully",
-        });
-
-    })
-
-}
-
-export default new ReportState();
+    res.status(200).json({
+      message: "State deleted successfully",
+    });
+  },
+);

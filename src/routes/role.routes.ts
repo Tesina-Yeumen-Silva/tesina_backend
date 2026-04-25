@@ -1,38 +1,39 @@
 import express from 'express';
-import roleController from '../controllers/role.controller.js';
-import { validateNumericId } from '../middleware/Validators/validationHelper.js';
-import { validateRole } from '../middleware/Validators/role.validator.js';
+import { createRole,getAllRole,getRoleById,updateRole,deleteRoleById } from '../controllers/role.controller.js';
+import { validateParams, validateBody } from '../middleware/validate.middleware.js';
+import { createRoleSchema, updateRoleSchema } from '../schemas/role.schema.js';
+import { generateIdSchema } from '../schemas/common.schema.js';
 
 const router = express.Router();
 
 router.post(
     '/',
-    validateRole,
-    roleController.createRole
+    validateBody(createRoleSchema),
+    createRole
 )
 
 router.get(
     '/',
-    roleController.getAllRole
+    getAllRole
 )
 
 router.get(
     '/:roleId',
-    validateNumericId('roleId'),
-    roleController.getRoleById
+    validateParams(generateIdSchema("roleId")),
+    getRoleById
 )
 
 router.put(
     '/:roleId',
-    validateNumericId('roleId'),
-    validateRole,
-    roleController.updateRole
+    validateParams(generateIdSchema("roleId")),
+    validateBody(updateRoleSchema),
+    updateRole
 )
 
 router.delete(
     '/:roleId',
-    validateNumericId('roleId'),
-    roleController.deleteRoleById
+    validateParams(generateIdSchema("roleId")),
+    deleteRoleById
 )
 
 export default router;
