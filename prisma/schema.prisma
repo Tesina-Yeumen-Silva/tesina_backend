@@ -31,6 +31,17 @@ model User {
   authProviders AuthProvider[]
   reportAdhesion ReportAdhesion[]
   report Report[]
+  passwordReset PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Role {
