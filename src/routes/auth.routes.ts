@@ -4,6 +4,8 @@ import {
   loginLocal,
   refreshToken,
   logout,
+  requestPasswordReset,
+  confirmPasswordReset,
   googleCallback,
   googleFailed,
 } from "../controllers/auth.controller.js";
@@ -13,6 +15,8 @@ import {
   registerLocalSchema,
   loginLocalSchema,
   tokenSchema,
+  requestPasswordResetSchema,
+  confirmPasswordResetSchema,
 } from "../schemas/auth.schema.js";
 import { authenticateJwt } from "../middleware/auth.middleware.js";
 
@@ -27,6 +31,10 @@ router.post(
   refreshToken,
 );
 router.post("/logout", authenticateJwt, validateBody(tokenSchema), logout);
+
+router.post("/forgot-password",validateBody(requestPasswordResetSchema),requestPasswordReset)
+
+router.post("/reset-password",validateBody(confirmPasswordResetSchema),confirmPasswordReset)
 
 router.get(
   "/google",
