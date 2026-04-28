@@ -62,8 +62,13 @@ export async function requestPasswordResetService(
   );
   if (!hasLocalProvider) throw new AppError("Dont have local acount", 400);
 
-  const token = crypto.randomBytes(32).toString("hex");
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
+  const randomNumber = crypto.randomInt(0, 1000000);
+  const token = randomNumber.toString().padStart(6, "0");
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 15);
+
+  await prisma.passwordResetToken.deleteMany({
+    where: { userId: user.id },
+  });
 
   await prisma.passwordResetToken.create({
     data: {
