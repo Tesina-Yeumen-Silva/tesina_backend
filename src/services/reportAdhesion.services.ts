@@ -11,6 +11,8 @@ export const toggleAdhesionService = async (reportId: number, userId: number) =>
         throw new AppError("El reporte no existe", 404);
     }
 
+    if(userId === report.userId) throw new AppError("You cant adhere your own report",400);
+
     const existingAdhesion = await prisma.reportAdhesion.findFirst({
         where: {
             reportId: reportId,
