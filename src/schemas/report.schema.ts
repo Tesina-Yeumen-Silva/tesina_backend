@@ -7,7 +7,10 @@ export const reportSchema = z.object({
   longitude: z.coerce.number(),
   description: z.string(),
   imageUrl: z.string(),
-  isAnonymous: z.coerce.boolean(),
+  isAnonymous: z.preprocess(
+    (val) => val === "true" || val === true, 
+    z.boolean()
+  ),
   categoryId: z.coerce.number(),
 });
 
