@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { prisma } from "../config/prisma.js";
-import { changeStateService, createReportService, deleteReportByIdService, getAllReportService, getMapMarkersService, getReportByIdService } from "../services/report.services.js";
+import { changeStateService, createReportService, deleteReportByIdService, getAllReportService, getMapMarkersService, getReportByIdService, getReportsByUserIdService } from "../services/report.services.js";
 import type { ChangeStateDTO, CreateReportDTO, GetReportsQueryDTO } from "../schemas/report.schema.js";
 
 
@@ -96,3 +96,19 @@ export const changeState = catchAsync(
   },
 
 );
+
+export const getReportsByUserId = catchAsync( async (req: Request, res: Response) => {
+  if (!req.user) throw new AppError("User not found", 400);
+  
+  const userId = req.user.userId;
+
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  const result = await getReportsByUserIdService(userId, page, limit);
+
+  res.status(200).json({
+    data: result.reports,
+    meta: result.meta 
+  });
+});

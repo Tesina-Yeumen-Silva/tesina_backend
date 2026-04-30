@@ -247,3 +247,62 @@ export const changeStateService = async (
 
   return newHistory;
 };
+
+export const getReportsByUserIdService = async (
+  userId: number, 
+  page: number = 1, 
+  limit: number = 10
+) => {
+  const skip = (page - 1) * limit;
+
+  const rawReports = await prisma.report.findMany({
+    where: {
+      userId: userId,
+      deletedAt: null,
+    },
+    orderBy: { createdAt: "desc" },
+    skip: skip, 
+    take: limit, 
+    select: {
+      id: true,
+      address: true,
+      createdAt: true,
+      category: { select: { name: true } },
+      reportHistory: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        include: {
+          state: { select: { name: true, color: true } },
+        },
+      },
+    },
+  });
+
+  // 2. Contamos cuántos reportes tiene este usuario en TOTAL
+  const totalReports = await prisma.report.count({
+    where: { userId: userId, deletedAt: null },
+  });
+
+  // 3. Mapeamos para que quede limpio (igual que antes)
+  const formattedReports = rawReports.map((report) => {
+    const currentState = report.reportHistory[0]?.state;
+    return {
+      id: report.id,
+      address: report.address,
+      createdAt: report.createdAt,
+      categoryName: report.category?.name || "Sin categoría",
+      stateName: currentState?.name || "Pendiente",
+      stateColor: currentState?.color || "#9E9E9E",
+    };
+  });
+
+  return {
+    reports: formattedReports,
+    meta: {
+      total: totalReports,
+      page: page,
+      limit: limit,
+      hasMore: page * limit < totalReports,
+    },
+  };
+};

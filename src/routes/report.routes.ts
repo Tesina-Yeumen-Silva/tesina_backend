@@ -6,6 +6,7 @@ import {
   deleteReportById,
   changeState,
   getMapMarkers,
+  getReportsByUserId,
 } from "../controllers/report.controller.js";
 import { uploadMiddleware } from "../middleware/upload.middleware.js";
 import {
@@ -41,6 +42,12 @@ router.get("/", authenticateJwt ,validateQuery(getReportQuerySchema), getAllRepo
 router.get("/markers",validateQuery(getReportQuerySchema), getMapMarkers);
 
 router.get(
+  "/user-reports",
+  authenticateJwt,
+  getReportsByUserId
+)
+
+router.get(
   "/:reportId",
   validateParams(generateIdSchema("reportId")),
   getReportById,
@@ -61,6 +68,8 @@ router.put(
   validateBody(changeStateSchema),
   changeState,
 );
+
+
 
 
 
