@@ -27,7 +27,7 @@ router.post(
   createCategory,
 );
 
-router.get("/", authenticateJwt, restrictTo("admin", "muni"), getAllCategory);
+router.get("/", authenticateJwt, getAllCategory);
 
 router.get(
   "/:categoryId",

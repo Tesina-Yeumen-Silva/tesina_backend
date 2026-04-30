@@ -15,7 +15,7 @@ export function authenticateJwt(req:Request,res:Response,next:NextFunction){
     try {
         const authheader = req.headers.authorization;
 
-        if(!authheader || !authheader.startsWith("Bearer ")){
+        if(!authheader || !authheader.startsWith("Bearer")){
             throw new AppError("Token needed", 401);
         }
 

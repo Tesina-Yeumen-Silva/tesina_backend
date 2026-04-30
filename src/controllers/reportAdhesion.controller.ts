@@ -4,12 +4,12 @@ import { getAdhesionsByReportIdService, toggleAdhesionService } from "../service
 
 export const toggleAdhesion = catchAsync(
   async (req: Request, res: Response) => {
-    const { reportId } = req.params as unknown as { reportId: number };
+    const reportId  = Number(req.params.reportId) ;
     
     const userId = req.user?.userId; 
 
     if (!userId) {
-        throw new Error("Usuario no autenticado"); 
+      throw new Error("Usuario no autenticado"); 
     }
 
     const result = await toggleAdhesionService(reportId, userId);
