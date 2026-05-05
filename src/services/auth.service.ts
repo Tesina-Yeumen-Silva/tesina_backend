@@ -10,6 +10,7 @@ import type {
   RequestPasswordResetDTO,
 } from "../schemas/auth.schema.js";
 import { sendPasswordReset } from "./emailServices.js";
+import { PROVIDERS } from "../constants/authProviders.js";
 
 export async function generateRefreshTokenService(userId: number) {
   const token = signRefreshToken();
@@ -58,7 +59,7 @@ export async function requestPasswordResetService(
   if (!user) throw new AppError("User not found", 404);
 
   const hasLocalProvider = user.authProviders.some(
-    (p) => p.provider === "local",
+    (p) => p.provider === PROVIDERS.LOCAL,
   );
   if (!hasLocalProvider) throw new AppError("Dont have local acount", 400);
 
@@ -108,7 +109,7 @@ export async function confirmPasswordResetService(
           where: {
             userId_provider: {
               userId: user.id,
-              provider: "local",
+              provider: PROVIDERS.LOCAL,
             },
           },
           data: { passwordHash: hashedPassword },
@@ -139,7 +140,7 @@ export async function registerLocalService(data: RegisterLocalDTO) {
       role: { connect: { id: roleId } },
       authProviders: {
         create: {
-          provider: "local",
+          provider: PROVIDERS.LOCAL,
           passwordHash,
         },
       },
@@ -168,7 +169,7 @@ export async function loginLocalService(data: LoginLocalDTO) {
     where: { email, deletedAt: null },
     include: {
       role: true,
-      authProviders: { where: { provider: "local" } },
+      authProviders: { where: { provider: PROVIDERS.LOCAL } },
     },
   });
 
