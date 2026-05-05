@@ -1,96 +1,76 @@
-import 'dotenv/config'
+import "dotenv/config";
 import bcrypt from "bcryptjs";
-import { prisma } from '../src/config/prisma.js'
+import { prisma } from "../src/config/prisma.js";
+import type { Role } from "../src/generated/prisma/client.js";
 
 async function main() {
-  const userRole = await prisma.role.upsert({
-    where: {name:"user"},
-    update:{},
-    create: {name:"user"}
-  })
+  console.log("🌱 Iniciando el proceso de seed...");
 
-  const adminRole = await prisma.role.upsert({
-    where: { name: "admin" },
-    update: {},
-    create: { name: "admin" },
-  });
+  const roles = ["user", "admin", "muni"];
+  const createdRoles: Record<string, Role> = {};
 
-  const muniRole = await prisma.role.upsert({
-    where: { name: "muni" },
-    update: {},
-    create: { name: "muni" },
-  });
+  for (const roleName of roles) {
+    createdRoles[roleName] = await prisma.role.upsert({
+      where: { name: roleName },
+      update: {},
+      create: { name: roleName },
+    });
+  }
 
-  await prisma.reportCategory.upsert({
-    where: {name:"acequia"},
-    update:{},
-    create:{name:"acequia"}
-  })
+  const reportStates = [
+    { name: "Pendiente", color: "#dd3611" },
+    { name: "Validado", color: "#e2e60a" },
+    { name: "En Progreso", color: "#1a16d8" },
+    { name: "Resuelto", color: "#09dd1e" },
+    { name: "Duplicado", color: "#940992" },
+    { name: "Rechazado", color: "#161716" },
+  ];
 
-  await prisma.reportCategory.upsert({
-    where: {name:"bache"},
-    update:{},
-    create:{name:"bache"}
-  })
+  for (const state of reportStates) {
+    await prisma.reportState.upsert({
+      where: { name: state.name },
+      update: { color: state.color },
+      create: state,
+    });
+  }
 
-  await prisma.reportCategory.upsert({
-    where: {name:"arbol"},
-    update:{},
-    create:{name:"arbol"}
-  })
+  const categories = [
+    { name: "Acequias y Drenajes" },
+    { name: "Alumbrado Público" },
+    { name: "Arbolado Público" },
+    { name: "Baches y Pavimentación" },
+    { name: "Limpieza y Residuos" },
+    { name: "Plazas y Parques" },
+    { name: "Semáforos y Señalización" },
+    { name: "Veredas y Accesibilidad" },
+    { name: "Agua y Cloacas" },
+  ];
 
-  await prisma.reportCategory.upsert({
-    where: {name:"basura"},
-    update:{},
-    create:{name:"basura"}
-  })
-
-  await prisma.reportState.upsert({
-    where: {name:"Pending"},
-    update:{},
-    create:{name:"Pending", color:"#dd3611"}
-  })
-
-  await prisma.reportState.upsert({
-    where: {name:"Duplicated"},
-    update:{},
-    create:{name:"Duplicated", color:"#940992"}
-  })
-
-  await prisma.reportState.upsert({
-    where: {name:"Rejected"},
-    update:{},
-    create:{name:"Rejected", color:"#161716"}
-  })
-
-  await prisma.reportState.upsert({
-    where: {name:"Validated"},
-    update:{},
-    create:{name:"Validated", color:"#e2e60a"}
-  })
-
-  await prisma.reportState.upsert({
-    where: {name:"In_progress"},
-    update:{},
-    create:{name:"In_progress", color:"#1a16d8"}
-  })
-
-  await prisma.reportState.upsert({
-    where: {name:"Resolved"},
-    update:{},
-    create:{name:"Resolved", color:"#09dd1e"}
-  })
+  for (const cat of categories) {
+    await prisma.reportCategory.upsert({
+      where: { name: cat.name },
+      update: {},
+      create: cat,
+    });
+  }
 
   const passwordHash = await bcrypt.hash("123456", 10);
 
-  for (const { email, role } of [
-    { email: "user@test.com", role: userRole },
-    { email: "admin@test.com", role: adminRole },
-  ]) {
+  const testUsers = [
+    { email: "user@test.com", role: createdRoles.user, name: "Ciudadano Test" },
+    { email: "admin@test.com", role: createdRoles.admin, name: "Admin Test" },
+    { email: "muni@test.com", role: createdRoles.muni, name: "Municipio Test" },
+  ];
+
+  for (const { email, role, name } of testUsers) {
     const user = await prisma.user.upsert({
       where: { email },
       update: {},
-      create: { email, roleId: role.id,name:"test" },
+      create: {
+        email,
+        roleId: role!.id,
+        name: name,
+      },
     });
 
     await prisma.authProvider.upsert({
@@ -100,12 +80,14 @@ async function main() {
     });
   }
 
-  
-
-  console.log("Roles seeded")
+  console.log("Seed finalizado con éxito");
 }
 
-main().catch((e) =>{
-    console.error(e);
+main()
+  .catch((e) => {
+    console.error("❌ Error en el seed:", e);
     process.exit(1);
-})
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
