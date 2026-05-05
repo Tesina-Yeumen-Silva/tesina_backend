@@ -1,70 +1,63 @@
 import { prisma } from "../config/prisma.js";
-import type { CreateCategoryDTO, UpdateCategoryDTO } from "../schemas/category.schema.js";
+import type {
+  CreateCategoryDTO,
+  UpdateCategoryDTO,
+} from "../schemas/category.schema.js";
 import { AppError } from "../utils/appError.js";
 
+export const createCategoryService = async (data: CreateCategoryDTO) => {
+  const newCategory = await prisma.reportCategory.create({
+    data: data,
+  });
 
+  return newCategory;
+};
 
-export const createCategoryService = async(data:CreateCategoryDTO) =>{
+export const getAllCategoryService = async () => {
+  const categories = await prisma.reportCategory.findMany({
+    where: { deletedAt: null },
+  });
 
-        const newCategory = await prisma.reportCategory.create({
-            data: data
-        })
+  return categories;
+};
 
-        return newCategory;
-    }
+export const getCategoryByIdService = async (categoryId: number) => {
+  const category = await prisma.reportCategory.findFirst({
+    where: { id: categoryId, deletedAt: null },
+  });
 
-    export const getAllCategoryService = async() =>{
-        const categories = await prisma.reportCategory.findMany({
-            where:{deletedAt:null}
-        }) 
+  if (!category) throw new AppError("Category not found", 404);
 
-        return categories;
-    }
-    
-    export const getCategoryByIdService = async(categoryId:number) =>{
-        
+  return category;
+};
 
-        const category = await prisma.reportCategory.findFirst({
-            where:{id:categoryId,deletedAt:null}
-        })
+export const updateCategoryService = async (
+  categoryId: number,
+  data: UpdateCategoryDTO,
+) => {
+  const category = await prisma.reportCategory.findFirst({
+    where: { id: categoryId, deletedAt: null },
+  });
 
-        if (!category) throw new AppError("Category not found", 404);
+  if (!category) throw new AppError("Category not found", 404);
 
-    
-        return category;
-        
-    }
+  const updatedCategory = await prisma.reportCategory.update({
+    where: { id: categoryId, deletedAt: null },
+    data: data,
+  });
 
-    export const updateCategoryService = async(categoryId:number,data:UpdateCategoryDTO) =>{
-        
+  return updatedCategory;
+};
 
-        const category = await prisma.reportCategory.findFirst({
-            where:{id:categoryId,deletedAt:null}
-        })
+export const deleteCategoryByIdService = async (categoryId: number) => {
+  const category = await prisma.reportCategory.findFirst({
+    where: { id: categoryId, deletedAt: null },
+  });
 
-        if (!category) throw new AppError("Category not found", 404);
+  if (!category) throw new AppError("Category not found", 404);
 
-        const updatedCategory = await prisma.reportCategory.update({
-            where:{id:categoryId, deletedAt:null},
-            data: data
-        })
-
-        return updatedCategory;
-    }
-
-    export const deleteCategoryByIdService = async(categoryId:number) =>{
-
-        const category = await prisma.reportCategory.findFirst({
-            where:{id:categoryId,deletedAt:null}
-        })
-
-        if (!category) throw new AppError("Category not found", 404);
-
-        await prisma.reportCategory.update({
-            where:{id:categoryId, deletedAt:null},
-            data:{deletedAt: new Date()}
-        })
-
-       
-
-    }
+  await prisma.reportCategory.update({
+    where: { id: categoryId, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
+};

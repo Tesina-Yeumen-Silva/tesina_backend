@@ -16,13 +16,14 @@ import {
 } from "../middleware/validate.middleware.js";
 import { generateIdSchema } from "../schemas/common.schema.js";
 import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
+import { ROLES } from "../constants/roles.js";
 
 const router = Router();
 
 router.post(
   "/",
   authenticateJwt,
-  restrictTo("admin"),
+  restrictTo(ROLES.ADMIN),
   validateBody(createCategorySchema),
   createCategory,
 );
@@ -32,7 +33,7 @@ router.get("/", authenticateJwt, getAllCategory);
 router.get(
   "/:categoryId",
   authenticateJwt,
-  restrictTo("admin", "muni"),
+  restrictTo(ROLES.ADMIN, ROLES.MUNI),
   validateParams(generateIdSchema("categoryId")),
   getCategoryById,
 );
@@ -40,7 +41,7 @@ router.get(
 router.put(
   "/:categoryId",
   authenticateJwt,
-  restrictTo("admin"),
+  restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("categoryId")),
   validateBody(updateCategorySchema),
   updateCategory,
@@ -49,7 +50,7 @@ router.put(
 router.delete(
   "/:categoryId",
   authenticateJwt,
-  restrictTo("admin"),
+  restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("categoryId")),
   deleteCategoryById,
 );

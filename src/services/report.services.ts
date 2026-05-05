@@ -8,13 +8,14 @@ import type {
   GetReportsQueryDTO,
 } from "../schemas/report.schema.js";
 import { Prisma } from "../generated/prisma/client.js";
+import { REPORT_STATES } from "../constants/reportStates.js";
 
 export const createReportService = async (
   data: CreateReportDTO,
   userId: number,
 ) => {
   const createdState = await prisma.reportState.findFirst({
-    where: { name: "Pending" },
+    where: { name: REPORT_STATES.PENDIENTE },
   });
 
   if (!createdState) throw new AppError("State not found", 400);
@@ -95,7 +96,11 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
       none: {
         state: {
           name: {
-            in: ["Solved", "Rejected", "Duplicated"],
+            in: [
+              REPORT_STATES.PENDIENTE,
+              REPORT_STATES.RECHAZADO,
+              REPORT_STATES.DUPLICADO,
+            ],
           },
         },
       },
@@ -249,9 +254,9 @@ export const changeStateService = async (
 };
 
 export const getReportsByUserIdService = async (
-  userId: number, 
-  page: number = 1, 
-  limit: number = 10
+  userId: number,
+  page: number = 1,
+  limit: number = 10,
 ) => {
   const skip = (page - 1) * limit;
 
@@ -261,8 +266,8 @@ export const getReportsByUserIdService = async (
       deletedAt: null,
     },
     orderBy: { createdAt: "desc" },
-    skip: skip, 
-    take: limit, 
+    skip: skip,
+    take: limit,
     select: {
       id: true,
       address: true,
@@ -278,12 +283,10 @@ export const getReportsByUserIdService = async (
     },
   });
 
-  // 2. Contamos cuántos reportes tiene este usuario en TOTAL
   const totalReports = await prisma.report.count({
     where: { userId: userId, deletedAt: null },
   });
 
-  // 3. Mapeamos para que quede limpio (igual que antes)
   const formattedReports = rawReports.map((report) => {
     const currentState = report.reportHistory[0]?.state;
     return {
