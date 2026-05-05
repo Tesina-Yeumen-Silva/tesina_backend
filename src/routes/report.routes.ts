@@ -23,6 +23,7 @@ import { generateIdSchema } from "../schemas/common.schema.js";
 import historyRouter from "./reportHistory.routes.js";
 import adhesionRouter from "./reportAdhesion.routes.js";
 import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
+import { ROLES } from "../constants/roles.js";
 
 const router = Router();
 
@@ -37,15 +38,16 @@ router.post(
   createReport,
 );
 
-router.get("/", authenticateJwt ,validateQuery(getReportQuerySchema), getAllReport);
-
-router.get("/markers",validateQuery(getReportQuerySchema), getMapMarkers);
-
 router.get(
-  "/user-reports",
+  "/",
   authenticateJwt,
-  getReportsByUserId
-)
+  validateQuery(getReportQuerySchema),
+  getAllReport,
+);
+
+router.get("/markers", validateQuery(getReportQuerySchema), getMapMarkers);
+
+router.get("/user-reports", authenticateJwt, getReportsByUserId);
 
 router.get(
   "/:reportId",
@@ -63,14 +65,10 @@ router.delete(
 router.put(
   "/:reportId/state",
   authenticateJwt,
-  restrictTo("admin","muni"),
+  restrictTo(ROLES.ADMIN, ROLES.MUNI),
   validateParams(generateIdSchema("reportId")),
   validateBody(changeStateSchema),
   changeState,
 );
-
-
-
-
 
 export default router;

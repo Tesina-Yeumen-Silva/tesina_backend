@@ -16,23 +16,29 @@ import {
 } from "../middleware/validate.middleware.js";
 import { generateIdSchema } from "../schemas/common.schema.js";
 import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
+import { ROLES } from "../constants/roles.js";
 
 const router = Router();
 
 router.post(
   "/",
   authenticateJwt,
-  restrictTo("admin"),
+  restrictTo(ROLES.ADMIN),
   validateBody(createStateSchema),
   createState,
 );
 
-router.get("/", authenticateJwt, restrictTo("admin", "muni"), getAllStates);
+router.get(
+  "/",
+  authenticateJwt,
+  restrictTo(ROLES.ADMIN, ROLES.MUNI),
+  getAllStates,
+);
 
 router.get(
   "/:stateId",
   authenticateJwt,
-  restrictTo("admin", "muni"),
+  restrictTo(ROLES.ADMIN, ROLES.MUNI),
   validateParams(generateIdSchema("stateId")),
   getStateById,
 );
@@ -40,7 +46,7 @@ router.get(
 router.put(
   "/:stateId",
   authenticateJwt,
-  restrictTo("admin"),
+  restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("stateId")),
   validateBody(updateStateSchema),
   updateState,
@@ -49,7 +55,7 @@ router.put(
 router.delete(
   "/:stateId",
   authenticateJwt,
-  restrictTo("admin"),
+  restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("stateId")),
   deleteStateById,
 );

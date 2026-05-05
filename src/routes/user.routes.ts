@@ -20,23 +20,24 @@ import {
   emailParamSchema,
 } from "../schemas/user.schema.js";
 import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
+import { ROLES } from "../constants/roles.js";
 
 const router = Router();
 
 router.post(
   "/",
   authenticateJwt,
-  restrictTo("admin"),
+  restrictTo(ROLES.ADMIN),
   validateBody(createUserSchema),
   createUser,
 );
 
-router.get("/", authenticateJwt, restrictTo("admin"), getAllUser);
+router.get("/", authenticateJwt, restrictTo(ROLES.ADMIN), getAllUser);
 
 router.get(
   "/:userId",
   authenticateJwt,
-  restrictTo("admin"),
+  restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("userId")),
   getUserById,
 );
@@ -44,7 +45,7 @@ router.get(
 router.get(
   "/email/:email",
   authenticateJwt,
-  restrictTo("admin"),
+  restrictTo(ROLES.ADMIN),
   validateParams(emailParamSchema),
   getUserByEmail,
 );
