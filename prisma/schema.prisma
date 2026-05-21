@@ -1,7 +1,10 @@
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
+}
+
+generator client_python {
+  provider = "prisma-client-py"
 }
 
 datasource db {
@@ -10,28 +13,28 @@ datasource db {
 }
 
 model RefreshToken {
-  id        Int       @id @default(autoincrement())
-  token     String    @unique
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
   userId    Int
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  email String @unique
-  name String 
-  roleId Int
-  role Role @relation(fields: [roleId],references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-  refreshTokens RefreshToken[]
-  authProviders AuthProvider[]
+  id             Int                  @id @default(autoincrement())
+  email          String               @unique
+  name           String
+  roleId         Int
+  role           Role                 @relation(fields: [roleId], references: [id])
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  refreshTokens  RefreshToken[]
+  authProviders  AuthProvider[]
   reportAdhesion ReportAdhesion[]
-  report Report[]
-  passwordReset PasswordResetToken[]
+  report         Report[]
+  passwordReset  PasswordResetToken[]
 }
 
 model PasswordResetToken {
@@ -50,7 +53,7 @@ model Role {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-  users User[]
+  users     User[]
 }
 
 enum ProviderType {
@@ -59,69 +62,70 @@ enum ProviderType {
 }
 
 model AuthProvider {
-  id Int @id @default(autoincrement())
-  userId Int
-  provider ProviderType
+  id                Int          @id @default(autoincrement())
+  userId            Int
+  provider          ProviderType
   providerAccountId String?
-  passwordHash String?
-  
+  passwordHash      String?
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, provider])
 }
 
 model Report {
-  id Int @id @default(autoincrement())
-  address String
-  latitude Float
-  longitude Float
-  description String
-  imageUrl String
-  isAnonymous Boolean
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-  categoryId Int
-  userId Int
-  user User @relation(fields: [userId],references: [id])
-  category ReportCategory @relation(fields: [categoryId],references: [id])
-  reportHistory ReportHistory[]
+  id             Int              @id @default(autoincrement())
+  address        String
+  latitude       Float
+  longitude      Float
+  description    String
+  imageUrl       String
+  isAnonymous    Boolean
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
+  categoryId     Int
+  userId         Int
+  user           User             @relation(fields: [userId], references: [id])
+  category       ReportCategory   @relation(fields: [categoryId], references: [id])
+  reportHistory  ReportHistory[]
   reportAdhesion ReportAdhesion[]
 }
 
-model ReportAdhesion{
-  id Int @id @default(autoincrement())
-  userId Int
-  reportId Int
-  createdAt DateTime  @default(now())
-  report Report @relation(fields: [reportId],references: [id])
-  user User @relation(fields: [userId],references: [id])
+model ReportAdhesion {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  reportId  Int
+  createdAt DateTime @default(now())
+  report    Report   @relation(fields: [reportId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-model ReportHistory{
-  id Int @id @default(autoincrement())
-  reportId Int
-  stateId Int
-  observation String 
-  createdAt DateTime  @default(now())
-  report Report @relation(fields: [reportId],references: [id])
-  state ReportState @relation(fields: [stateId],references: [id])
+model ReportHistory {
+  id          Int         @id @default(autoincrement())
+  reportId    Int
+  stateId     Int
+  observation String
+  createdAt   DateTime    @default(now())
+  report      Report      @relation(fields: [reportId], references: [id])
+  state       ReportState @relation(fields: [stateId], references: [id])
 }
 
 model ReportCategory {
-  id Int @id @default(autoincrement())
-  name String @unique
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-  reports Report[]
+  reports   Report[]
 }
 
 model ReportState {
-  id Int @id @default(autoincrement())
-  name String @unique
-  color String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  color         String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  deletedAt     DateTime?
   reportHistory ReportHistory[]
 }
