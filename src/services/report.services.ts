@@ -7,7 +7,7 @@ import type {
   CreateReportDTO,
   GetReportsQueryDTO,
 } from "../schemas/report.schema.js";
-import { Prisma } from "../generated/prisma/client.js";
+import { Prisma } from "../generated/prisma/index.js";
 import { REPORT_STATES } from "../constants/reportStates.js";
 
 export const createReportService = async (
@@ -90,48 +90,47 @@ export const getAllReportService = async (query: GetReportsQueryDTO) => {
 export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
   const { minLat, maxLat, minLng, maxLng } = query;
 
-  const whereClause: Prisma.ReportWhereInput = {
-    deletedAt: null,
-    reportHistory: {
-      none: {
-        state: {
-          name: {
-            in: [
-              REPORT_STATES.PENDIENTE,
-              REPORT_STATES.RECHAZADO,
-              REPORT_STATES.DUPLICADO,
-            ],
-          },
-        },
-      },
-    },
-  };
+  const excludedStates = [
+    REPORT_STATES.PENDIENTE,
+    REPORT_STATES.RECHAZADO,
+    REPORT_STATES.DUPLICADO,
+  ];
 
-  if (minLat && maxLat && minLng && maxLng) {
-    whereClause.latitude = { gte: minLat, lte: maxLat };
-    whereClause.longitude = { gte: minLng, lte: maxLng };
-  }
+  const geoFilter =
+    minLat !== undefined &&
+    maxLat !== undefined &&
+    minLng !== undefined &&
+    maxLng !== undefined
+      ? Prisma.sql`AND r.latitude >= ${minLat} AND r.latitude <= ${maxLat} AND r.longitude >= ${minLng} AND r.longitude <= ${maxLng}`
+      : Prisma.empty;
 
-  const rawMarkers = await prisma.report.findMany({
-    where: whereClause,
-    select: {
-      id: true,
-      latitude: true,
-      longitude: true,
-      reportHistory: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        select: { state: { select: { name: true, color: true } } },
-      },
-    },
-  });
+  const rawMarkers: any[] = await prisma.$queryRaw`
+    WITH LatestHistory AS (
+      SELECT DISTINCT ON ("reportId") "reportId", "stateId"
+      FROM "ReportHistory"
+      ORDER BY "reportId", "createdAt" DESC
+    )
+    SELECT 
+      r.id, 
+      r.latitude, 
+      r.longitude, 
+      s.name AS status, 
+      s.color AS "statusColor"
+    FROM "Report" r
+    INNER JOIN LatestHistory lh ON r.id = lh."reportId"
+    INNER JOIN "ReportState" s ON lh."stateId" = s.id
+    WHERE r."deletedAt" IS NULL
+      AND s.name NOT IN (${Prisma.join(excludedStates)})
+      -- Insertamos las coordenadas si existen
+      ${geoFilter}
+  `;
 
-  const markers = rawMarkers.map((report) => ({
-    id: report.id,
-    latitude: report.latitude,
-    longitude: report.longitude,
-    status: report.reportHistory[0]?.state?.name || "Unknown",
-    statusColor: report.reportHistory[0]?.state?.color || "Unknown",
+  const markers = rawMarkers.map((marker) => ({
+    id: marker.id,
+    latitude: Number(marker.latitude),
+    longitude: Number(marker.longitude),
+    status: marker.status || "Unknown",
+    statusColor: marker.statusColor || "Unknown",
   }));
 
   return markers;
