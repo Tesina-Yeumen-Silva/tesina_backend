@@ -9,6 +9,7 @@ import type {
 } from "../schemas/report.schema.js";
 import { Prisma } from "../generated/prisma/index.js";
 import { REPORT_STATES } from "../constants/reportStates.js";
+import { publishReportValidation } from "../queues/publishers/reportPublisher.js";
 
 export const createReportService = async (
   data: CreateReportDTO,
@@ -43,6 +44,8 @@ export const createReportService = async (
       },
     },
   });
+
+  await publishReportValidation(newReport.id);
 
   return newReport;
 };
