@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { prisma } from "../config/prisma.js";
 import { signAccessToken, signRefreshToken } from "../utils/jwt.js";
-import { AppError } from "../utils/appError.js";
+import { UnauthorizedError, NotFoundError, BadRequestError, ConflictError } from "../utils/appError.js";
 import type {
   confirmPasswordResetDTO,
   LoginLocalDTO,
@@ -29,10 +29,10 @@ export async function refreshAccessTokenService(refreshToken: string) {
     include: { user: { include: { role: true } } },
   });
 
-  if (!stored) throw new AppError("Refresh token invalid", 401);
+  if (!stored) throw new UnauthorizedError("Refresh token invalid");
   if (stored.expiresAt < new Date()) {
     await prisma.refreshToken.delete({ where: { token: refreshToken } });
-    throw new AppError("Refresh token expired", 401);
+    throw new UnauthorizedError("Refresh token expired");
   }
 
   const accessToken = signAccessToken({
@@ -56,12 +56,12 @@ export async function requestPasswordResetService(
     include: { authProviders: true },
   });
 
-  if (!user) throw new AppError("User not found", 404);
+  if (!user) throw new NotFoundError("User not found");
 
   const hasLocalProvider = user.authProviders.some(
     (p) => p.provider === PROVIDERS.LOCAL,
   );
-  if (!hasLocalProvider) throw new AppError("Dont have local acount", 400);
+  if (!hasLocalProvider) throw new BadRequestError("Dont have local acount");
 
   const randomNumber = crypto.randomInt(0, 1000000);
   const token = randomNumber.toString().padStart(6, "0");
@@ -88,16 +88,16 @@ export async function confirmPasswordResetService(
     where: { token: data.code },
   });
 
-  if (!resetToken) throw new AppError("Invalid Token", 400);
+  if (!resetToken) throw new BadRequestError("Invalid Token");
   if (resetToken.expiresAt < new Date())
-    throw new AppError("Expired Token", 400);
+    throw new BadRequestError("Expired Token");
 
   const user = await prisma.user.findFirst({
     where: { email: data.email, deletedAt: null },
   });
 
-  if (!user) throw new AppError("User not found", 404);
-  if (resetToken.userId !== user.id) throw new AppError("Invalid Token", 400);
+  if (!user) throw new NotFoundError("User not found");
+  if (resetToken.userId !== user.id) throw new BadRequestError("Invalid Token");
 
   const hashedPassword = await bcrypt.hash(data.newPassword, 10);
 
@@ -129,7 +129,7 @@ export async function registerLocalService(data: RegisterLocalDTO) {
   const existingUser = await prisma.user.findFirst({
     where: { email, deletedAt: null },
   });
-  if (existingUser) throw new AppError("Email already registered", 409);
+  if (existingUser) throw new ConflictError("Email already registered");
 
   const passwordHash = await bcrypt.hash(password, 10);
 
@@ -174,7 +174,7 @@ export async function loginLocalService(data: LoginLocalDTO) {
   });
 
   if (!user || user.authProviders.length === 0) {
-    throw new AppError("Invalid email or password", 401);
+    throw new UnauthorizedError("Invalid email or password");
   }
 
   const localProvider = user.authProviders[0];
@@ -183,7 +183,7 @@ export async function loginLocalService(data: LoginLocalDTO) {
       password,
       localProvider.passwordHash!,
     );
-    if (!validPassword) throw new AppError("Invalid email or password", 401);
+    if (!validPassword) throw new UnauthorizedError("Invalid email or password");
   }
 
   const token = signAccessToken({

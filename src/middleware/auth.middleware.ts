@@ -1,6 +1,6 @@
 import type { Request,Response,NextFunction } from "express";
 import jwt from 'jsonwebtoken'
-import { AppError } from "../utils/appError.js";
+import { AppError, UnauthorizedError, ForbiddenError } from "../utils/appError.js";
 import { verifyToken } from "../utils/jwt.js";
 
 export interface JwtPayload {
@@ -16,24 +16,20 @@ export function authenticateJwt(req:Request,res:Response,next:NextFunction){
         const authheader = req.headers.authorization;
 
         if(!authheader || !authheader.startsWith("Bearer")){
-            throw new AppError("Token needed", 401);
+            throw new UnauthorizedError("Token needed");
         }
 
         const token = authheader.split(" ")[1];
 
         if (!token) {
-            throw new AppError("Token needed", 401);
+            throw new UnauthorizedError("Token needed");
         }
         const payload = verifyToken(token);
 
         req.user = payload;
         next();
     } catch (error) {
-        if(error instanceof AppError){
-            res.status(error.statusCode).json({ message: error.message });
-            return;
-        }
-            res.status(401).json({ message: "Invalid or expired token" });
+        next(error);
     }
 }
 
@@ -42,7 +38,7 @@ export const restrictTo = (...allowedRoles: string[]) => {
         const userRole = req.user?.role;
 
         if (!userRole || !allowedRoles.includes(userRole)) {
-            return next(new AppError("No tienes permisos suficientes para realizar esta acción", 403));
+            return next(new ForbiddenError("No tienes permisos suficientes para realizar esta acción"));
         }
 
         next();

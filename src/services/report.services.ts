@@ -1,5 +1,5 @@
 import { prisma } from "../config/prisma.js";
-import { AppError } from "../utils/appError.js";
+import { NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError } from "../utils/appError.js";
 import { uploadImageToCloud } from "./cloud.services.js";
 import { optimizeImageService } from "./image.services.js";
 import type {
@@ -19,7 +19,7 @@ export const createReportService = async (
     where: { name: REPORT_STATES.PENDIENTE },
   });
 
-  if (!createdState) throw new AppError("State not found", 400);
+  if (!createdState) throw new BadRequestError("State not found");
 
   const { buffer: optimizedImage } = await optimizeImageService(
     data.originalBuffer,
@@ -177,7 +177,7 @@ export const getReportByIdService = async (reportId: number) => {
     },
   });
 
-  if (!report) throw new AppError("Report not found", 404);
+  if (!report) throw new NotFoundError("Report not found");
 
   const mappedReport = {
     id: report.id,
@@ -217,12 +217,12 @@ export const deleteReportByIdService = async (
     },
   });
 
-  if (!report) throw new AppError("Only owner can delete this report", 401);
+  if (!report) throw new UnauthorizedError("Only owner can delete this report");
 
   const currentState = report.reportHistory[0]?.state?.name;
 
   if (currentState !== "Pending") {
-    throw new AppError("Cant delete report in progress", 403);
+    throw new ForbiddenError("Cant delete report in progress");
   }
 
   await prisma.report.update({
@@ -239,7 +239,7 @@ export const changeStateService = async (
     where: { id: reportId, deletedAt: null },
   });
 
-  if (!report) throw new AppError("Report not found", 404);
+  if (!report) throw new NotFoundError("Report not found");
 
   const newHistory = await prisma.reportHistory.create({
     data: {

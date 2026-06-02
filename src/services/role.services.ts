@@ -1,6 +1,6 @@
 import { prisma } from "../config/prisma.js";
 import type { CreateRoleDTO, UpdateRoleDTO } from "../schemas/role.schema.js";
-import { AppError } from "../utils/appError.js";
+import { NotFoundError } from "../utils/appError.js";
 
 export const getAllRoleService = async () => {
   const roles = await prisma.role.findMany({
@@ -18,7 +18,7 @@ export const getRoleByIdService = async (roleId: number) => {
   });
 
   if (!role) {
-    throw new AppError("Role not found", 404);
+    throw new NotFoundError("Role not found");
   }
 
   return role;
@@ -41,7 +41,7 @@ export const updateRoleService = async (
   });
 
   if (!existingRole) {
-    throw new AppError("Role not found", 404);
+    throw new NotFoundError("Role not found");
   }
 
   const updatedRole = await prisma.role.update({
@@ -58,7 +58,7 @@ export const deleteRoleByIdService = async (roleId: number) => {
   });
 
   if (!existingRole) {
-    throw new AppError("Role not found", 404);
+    throw new NotFoundError("Role not found");
   }
 
   await prisma.role.update({

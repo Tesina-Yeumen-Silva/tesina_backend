@@ -3,7 +3,7 @@ import type {
   CreateCategoryDTO,
   UpdateCategoryDTO,
 } from "../schemas/category.schema.js";
-import { AppError } from "../utils/appError.js";
+import { NotFoundError } from "../utils/appError.js";
 
 export const createCategoryService = async (data: CreateCategoryDTO) => {
   const newCategory = await prisma.reportCategory.create({
@@ -26,7 +26,7 @@ export const getCategoryByIdService = async (categoryId: number) => {
     where: { id: categoryId, deletedAt: null },
   });
 
-  if (!category) throw new AppError("Category not found", 404);
+  if (!category) throw new NotFoundError("Category not found");
 
   return category;
 };
@@ -39,7 +39,7 @@ export const updateCategoryService = async (
     where: { id: categoryId, deletedAt: null },
   });
 
-  if (!category) throw new AppError("Category not found", 404);
+  if (!category) throw new NotFoundError("Category not found");
 
   const updatedCategory = await prisma.reportCategory.update({
     where: { id: categoryId, deletedAt: null },
@@ -54,7 +54,7 @@ export const deleteCategoryByIdService = async (categoryId: number) => {
     where: { id: categoryId, deletedAt: null },
   });
 
-  if (!category) throw new AppError("Category not found", 404);
+  if (!category) throw new NotFoundError("Category not found");
 
   await prisma.reportCategory.update({
     where: { id: categoryId, deletedAt: null },
