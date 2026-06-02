@@ -13,26 +13,17 @@ const validate =
       if (field === "params") {
         req.params = parsed as ParamsDictionary;
       } else if (field === "query") {
-        Object.defineProperty(req, 'query', {
-            value: parsed as ParsedQs,
-            writable: true,
-            enumerable: true,
-            configurable: true
+        Object.defineProperty(req, "query", {
+          value: parsed as ParsedQs,
+          writable: true,
+          enumerable: true,
+          configurable: true,
         });
       } else {
         req.body = parsed;
       }
       next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({
-          message: "Error de validación",
-          errors: error.issues.map((e) => ({
-            campo: e.path.join(".") || "root",
-            error: e.message,
-          })),
-        });
-      }
       next(error);
     }
   };
