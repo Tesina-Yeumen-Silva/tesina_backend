@@ -1,5 +1,5 @@
 import { prisma } from "../config/prisma.js";
-import { AppError } from "../utils/appError.js";
+import { NotFoundError } from "../utils/appError.js";
 import type {
   UpdateStateDTO,
   CreateStateDTO,
@@ -24,7 +24,7 @@ export const getStateByIdService = async (stateId: number) => {
     where: { id: stateId, deletedAt: null },
   });
 
-  if (!state) throw new AppError("State not found", 404);
+  if (!state) throw new NotFoundError("State not found");
 
   return state;
 };
@@ -37,7 +37,7 @@ export const updatedStateService = async (
     where: { id: stateId, deletedAt: null },
   });
 
-  if (!state) throw new AppError("State not found", 404);
+  if (!state) throw new NotFoundError("State not found");
 
   const updatedState = await prisma.reportState.update({
     where: { id: stateId, deletedAt: null },
@@ -51,7 +51,7 @@ export const deleteStateByIdService = async (stateId: number) => {
     where: { id: stateId, deletedAt: null },
   });
 
-  if (!state) throw new AppError("State not found", 404);
+  if (!state) throw new NotFoundError("State not found");
 
   await prisma.reportState.update({
     where: { id: stateId, deletedAt: null },

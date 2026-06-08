@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { AppError } from "../utils/appError.js";
+import { BadRequestError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { prisma } from "../config/prisma.js";
 import { changeStateService, createReportService, deleteReportByIdService, getAllReportService, getMapMarkersService, getReportByIdService, getReportsByUserIdService } from "../services/report.services.js";
@@ -8,8 +8,8 @@ import type { ChangeStateDTO, CreateReportDTO, GetReportsQueryDTO } from "../sch
 
 
 export const createReport = catchAsync(async (req: Request, res: Response) => {
-  if (!req.file) throw new AppError("La imagen es obligatoria", 400);
-  if(!req.user) throw new AppError("User not found",400)
+  if (!req.file) throw new BadRequestError("La imagen es obligatoria");
+  if(!req.user) throw new BadRequestError("User not found");
   const userId = req.user.userId;
 
   const reportData: CreateReportDTO = {
@@ -69,7 +69,7 @@ export const getReportById = catchAsync(
 
 export const deleteReportById = catchAsync(
   async (req: Request, res: Response) => {
-    if(!req.user) throw new AppError("User not found",400)
+    if(!req.user) throw new BadRequestError("User not found");
     const userId = req.user.userId;
     console.log(userId)
     const reportId = Number(req.params.reportId);
@@ -98,7 +98,7 @@ export const changeState = catchAsync(
 );
 
 export const getReportsByUserId = catchAsync( async (req: Request, res: Response) => {
-  if (!req.user) throw new AppError("User not found", 400);
+  if (!req.user) throw new BadRequestError("User not found");
   
   const userId = req.user.userId;
 

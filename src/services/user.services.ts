@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../config/prisma.js";
-import { AppError } from "../utils/appError.js";
+import { ConflictError, NotFoundError } from "../utils/appError.js";
 import type {
   UpdateUserDTO,
   UpdatePasswordDTO,
@@ -14,7 +14,7 @@ export const createUserService = async (data: CreateUserDTO) => {
   });
 
   if (existingUser) {
-    throw new AppError("Email already registered", 409);
+    throw new ConflictError("Email already registered");
   }
 
   const passwordHash = await bcrypt.hash(data.password, 10);
@@ -72,7 +72,7 @@ export const getUserByIdService = async (userId: number) => {
     },
   });
 
-  if (!user) throw new AppError("User not found", 404);
+  if (!user) throw new NotFoundError("User not found");
 
   return user;
 };
@@ -85,7 +85,7 @@ export const updatedUserService = async (
     where: { id: userId, deletedAt: null },
   });
 
-  if (!user) throw new AppError("User not found", 404);
+  if (!user) throw new NotFoundError("User not found");
 
   const updatedUser = await prisma.user.update({
     where: { id: userId },
@@ -103,7 +103,7 @@ export const updatePasswordService = async (
     where: { userId, provider: PROVIDERS.LOCAL },
   });
 
-  if (!provider) throw new AppError("Usser not found", 404);
+  if (!provider) throw new NotFoundError("User not found");
 
   const passwordHash = await bcrypt.hash(data.password, 10);
 
@@ -118,7 +118,7 @@ export const deleteUserByIdService = async (userId: number) => {
     where: { id: userId, deletedAt: null },
   });
 
-  if (!user) throw new AppError("User not found", 404);
+  if (!user) throw new NotFoundError("User not found");
 
   await prisma.user.update({
     where: { id: userId },
@@ -131,7 +131,7 @@ export const getUserByEmailService = async (email: string) => {
     where: { email, deletedAt: null },
   });
 
-  if (!user) throw new AppError("User not found", 404);
+  if (!user) throw new NotFoundError("User not found");
 
   return user;
 };

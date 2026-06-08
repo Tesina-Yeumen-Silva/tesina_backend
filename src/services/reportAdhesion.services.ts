@@ -1,5 +1,5 @@
 import { prisma } from "../config/prisma.js"
-import { AppError } from "../utils/appError.js"
+import { NotFoundError, BadRequestError } from "../utils/appError.js"
 
 
 export const toggleAdhesionService = async (reportId: number, userId: number) => {
@@ -8,10 +8,10 @@ export const toggleAdhesionService = async (reportId: number, userId: number) =>
     });
 
     if (!report) {
-        throw new AppError("El reporte no existe", 404);
+        throw new NotFoundError("El reporte no existe");
     }
 
-    if(userId === report.userId) throw new AppError("You cant adhere your own report",400);
+    if(userId === report.userId) throw new BadRequestError("You cant adhere your own report");
 
     const existingAdhesion = await prisma.reportAdhesion.findFirst({
         where: {
@@ -46,7 +46,7 @@ export const getAdhesionsByReportIdService = async(reportId:number) => {
         }
     })
 
-    if(!users) throw new AppError("Users not found",404)
+    if(!users) throw new NotFoundError("Users not found");
     
     return users;
 }
