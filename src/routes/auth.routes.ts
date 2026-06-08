@@ -11,6 +11,7 @@ import {
 } from "../controllers/auth.controller.js";
 import passport from "../config/passport.js";
 import { validateBody } from "../middleware/validate.middleware.js";
+import { authLimiter, apiLimiter } from "../config/rateLimit.js";
 import {
   registerLocalSchema,
   loginLocalSchema,
@@ -22,19 +23,20 @@ import { authenticateJwt } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.post("/register", validateBody(registerLocalSchema), registerLocal);
-router.post("/login", validateBody(loginLocalSchema), loginLocal);
+router.post("/register", authLimiter, validateBody(registerLocalSchema), registerLocal);
+router.post("/login", authLimiter, validateBody(loginLocalSchema), loginLocal);
 router.post(
   "/refresh",
   authenticateJwt,
+  apiLimiter,
   validateBody(tokenSchema),
   refreshToken,
 );
-router.post("/logout", authenticateJwt, validateBody(tokenSchema), logout);
+router.post("/logout", authenticateJwt, apiLimiter, validateBody(tokenSchema), logout);
 
-router.post("/forgot-password",validateBody(requestPasswordResetSchema),requestPasswordReset)
+router.post("/forgot-password", authLimiter, validateBody(requestPasswordResetSchema), requestPasswordReset)
 
-router.post("/reset-password",validateBody(confirmPasswordResetSchema),confirmPasswordReset)
+router.post("/reset-password", authLimiter, validateBody(confirmPasswordResetSchema), confirmPasswordReset)
 
 router.get(
   "/google",

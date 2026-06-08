@@ -17,12 +17,15 @@ import {
 import { generateIdSchema } from "../schemas/common.schema.js";
 import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
 import { ROLES } from "../constants/roles.js";
+import { apiLimiter } from "../config/rateLimit.js";
 
 const router = Router();
 
+router.use(authenticateJwt);
+router.use(apiLimiter);
+
 router.post(
   "/",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateBody(createStateSchema),
   createState,
@@ -30,14 +33,12 @@ router.post(
 
 router.get(
   "/",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN, ROLES.MUNI),
   getAllStates,
 );
 
 router.get(
   "/:stateId",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN, ROLES.MUNI),
   validateParams(generateIdSchema("stateId")),
   getStateById,
@@ -45,7 +46,6 @@ router.get(
 
 router.put(
   "/:stateId",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("stateId")),
   validateBody(updateStateSchema),
@@ -54,7 +54,6 @@ router.put(
 
 router.delete(
   "/:stateId",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("stateId")),
   deleteStateById,

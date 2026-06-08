@@ -17,22 +17,24 @@ import {
 import { generateIdSchema } from "../schemas/common.schema.js";
 import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
 import { ROLES } from "../constants/roles.js";
+import { apiLimiter } from "../config/rateLimit.js";
 
 const router = Router();
 
+router.use(authenticateJwt);
+router.use(apiLimiter);
+
 router.post(
   "/",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateBody(createCategorySchema),
   createCategory,
 );
 
-router.get("/", authenticateJwt, getAllCategory);
+router.get("/", getAllCategory);
 
 router.get(
   "/:categoryId",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN, ROLES.MUNI),
   validateParams(generateIdSchema("categoryId")),
   getCategoryById,
@@ -40,7 +42,6 @@ router.get(
 
 router.put(
   "/:categoryId",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("categoryId")),
   validateBody(updateCategorySchema),
@@ -49,7 +50,6 @@ router.put(
 
 router.delete(
   "/:categoryId",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("categoryId")),
   deleteCategoryById,
