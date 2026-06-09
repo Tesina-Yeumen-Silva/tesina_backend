@@ -35,12 +35,11 @@ router.post(
 router.post("/login", authLimiter, validateBody(loginLocalSchema), loginLocal);
 router.post(
   "/refresh",
-  authenticateJwt,
   apiLimiter,
   validateBody(tokenSchema),
   refreshToken,
 );
-router.post("/logout", authenticateJwt, apiLimiter, validateBody(tokenSchema), logout);
+router.post("/logout", apiLimiter, validateBody(tokenSchema), logout);
 
 router.post("/forgot-password", authLimiter, validateBody(requestPasswordResetSchema), requestPasswordReset)
 
