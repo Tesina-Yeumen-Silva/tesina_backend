@@ -19,6 +19,9 @@ export const apiLimiter = rateLimit({
   limit: 10,
   keyGenerator: (req) =>
     (req as Request).user?.userId?.toString() ?? req.ip ?? "unknown",
+  validate: {
+    keyGeneratorIpFallback: false,
+  },
   handler: (req: Request, res: Response) => {
     res.status(429).json({
       error: "Limite de peticiones alcanzado",
