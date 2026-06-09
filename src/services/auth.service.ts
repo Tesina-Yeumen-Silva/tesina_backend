@@ -1,16 +1,17 @@
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 import { prisma } from "../config/prisma.js";
-import { signAccessToken, signRefreshToken } from "../utils/jwt.js";
+import { signAccessToken, signRefreshToken, signRegisterToken, verifyRegisterToken } from "../utils/jwt.js";
 import { UnauthorizedError, NotFoundError, BadRequestError, ConflictError } from "../utils/appError.js";
 import type {
   confirmPasswordResetDTO,
   LoginLocalDTO,
   RegisterLocalDTO,
   RequestPasswordResetDTO,
+  ConfirmRegisterDTO,
 } from "../schemas/auth.schema.js";
-import { sendPasswordReset } from "./emailServices.js";
+import { sendPasswordReset, sendRegisterCode } from "./emailServices.js";
 import { PROVIDERS } from "../constants/authProviders.js";
+import { generateVerificationCode } from "../utils/crypto.js";
 
 export async function generateRefreshTokenService(userId: number) {
   const token = signRefreshToken();
@@ -63,8 +64,7 @@ export async function requestPasswordResetService(
   );
   if (!hasLocalProvider) throw new BadRequestError("Dont have local acount");
 
-  const randomNumber = crypto.randomInt(0, 1000000);
-  const token = randomNumber.toString().padStart(6, "0");
+  const token = generateVerificationCode();
   const expiresAt = new Date(Date.now() + 1000 * 60 * 15);
 
   await prisma.passwordResetToken.deleteMany({
@@ -133,15 +133,49 @@ export async function registerLocalService(data: RegisterLocalDTO) {
 
   const passwordHash = await bcrypt.hash(password, 10);
 
+  const code = generateVerificationCode();
+
+  const signupToken = signRegisterToken({
+    email,
+    name,
+    passwordHash,
+    roleId,
+    code,
+  });
+
+  await sendRegisterCode(email, code);
+
+  return { signupToken };
+}
+
+export async function confirmRegisterService(data: ConfirmRegisterDTO) {
+  const { email, code, signupToken } = data;
+
+  let payload;
+  try {
+    payload = verifyRegisterToken(signupToken);
+  } catch (err) {
+    throw new BadRequestError("Token de registro inválido o expirado");
+  }
+
+  if (payload.email !== email || payload.code !== code) {
+    throw new BadRequestError("Código de validación incorrecto o el email no coincide");
+  }
+
+  const existingUser = await prisma.user.findFirst({
+    where: { email, deletedAt: null },
+  });
+  if (existingUser) throw new ConflictError("Email ya registrado");
+
   const user = await prisma.user.create({
     data: {
       email,
-      name,
-      role: { connect: { id: roleId } },
+      name: payload.name,
+      role: { connect: { id: payload.roleId } },
       authProviders: {
         create: {
           provider: PROVIDERS.LOCAL,
-          passwordHash,
+          passwordHash: payload.passwordHash,
         },
       },
     },

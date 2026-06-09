@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   registerLocal,
+  confirmRegister,
   loginLocal,
   refreshToken,
   logout,
@@ -14,6 +15,7 @@ import { validateBody } from "../middleware/validate.middleware.js";
 import { authLimiter, apiLimiter } from "../config/rateLimit.js";
 import {
   registerLocalSchema,
+  confirmRegisterSchema,
   loginLocalSchema,
   tokenSchema,
   requestPasswordResetSchema,
@@ -24,6 +26,12 @@ import { authenticateJwt } from "../middleware/auth.middleware.js";
 const router = Router();
 
 router.post("/register", authLimiter, validateBody(registerLocalSchema), registerLocal);
+router.post(
+  "/register/confirm",
+  authLimiter,
+  validateBody(confirmRegisterSchema),
+  confirmRegister,
+);
 router.post("/login", authLimiter, validateBody(loginLocalSchema), loginLocal);
 router.post(
   "/refresh",
