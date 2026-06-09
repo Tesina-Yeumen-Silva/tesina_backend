@@ -2,12 +2,7 @@ import type { Request,Response,NextFunction } from "express";
 import jwt from 'jsonwebtoken'
 import { AppError, UnauthorizedError, ForbiddenError } from "../utils/appError.js";
 import { verifyToken } from "../utils/jwt.js";
-
-export interface JwtPayload {
-    userId: number;
-    email:string;
-    role: string;
-}
+import type { JwtPayload } from "../types/auth.js";
 
 
 

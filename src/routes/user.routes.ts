@@ -21,22 +21,24 @@ import {
 } from "../schemas/user.schema.js";
 import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
 import { ROLES } from "../constants/roles.js";
+import { apiLimiter } from "../config/rateLimit.js";
 
 const router = Router();
 
+router.use(authenticateJwt);
+router.use(apiLimiter);
+
 router.post(
   "/",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateBody(createUserSchema),
   createUser,
 );
 
-router.get("/", authenticateJwt, restrictTo(ROLES.ADMIN), getAllUser);
+router.get("/", restrictTo(ROLES.ADMIN), getAllUser);
 
 router.get(
   "/:userId",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("userId")),
   getUserById,
@@ -44,7 +46,6 @@ router.get(
 
 router.get(
   "/email/:email",
-  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(emailParamSchema),
   getUserByEmail,

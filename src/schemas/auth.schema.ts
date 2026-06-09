@@ -26,6 +26,12 @@ export const confirmPasswordResetSchema = z.object({
   newPassword: z.string().min(1, "La contraseña es obligatoria"),
 });
 
+export const confirmRegisterSchema = z.object({
+  email: z.email("El formato del correo es inválido"),
+  code: z.string().min(6, "El código debe tener al menos 6 caracteres"),
+  signupToken: z.string().min(1, "El token de registro es obligatorio"),
+});
+
 export type RegisterLocalDTO = z.infer<typeof registerLocalSchema>;
 export type LoginLocalDTO = z.infer<typeof loginLocalSchema>;
 export type TokenDTO = z.infer<typeof tokenSchema>;
@@ -35,3 +41,4 @@ export type RequestPasswordResetDTO = z.infer<
 export type confirmPasswordResetDTO = z.infer<
   typeof confirmPasswordResetSchema
 >;
+export type ConfirmRegisterDTO = z.infer<typeof confirmRegisterSchema>;

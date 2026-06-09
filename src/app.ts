@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { globalLimiter } from "./config/rateLimit.js";
 import passport from "./config/passport.js";
 import roleRouter from "./routes/role.routes.js";
 import authRouter from "./routes/auth.routes.js";
@@ -13,6 +14,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use(globalLimiter)
 app.use(passport.initialize());
 
 app.use("/roles", roleRouter);
@@ -23,5 +25,7 @@ app.use("/report-categories", reportCategoryRouter);
 app.use("/report-states", reportStateRouter);
 
 app.use(errorHandler);
+
+
 
 export default app;

@@ -24,6 +24,7 @@ import historyRouter from "./reportHistory.routes.js";
 import adhesionRouter from "./reportAdhesion.routes.js";
 import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
 import { ROLES } from "../constants/roles.js";
+import { apiLimiter } from "../config/rateLimit.js";
 
 const router = Router();
 
@@ -34,6 +35,7 @@ router.post(
   "/",
   uploadMiddleware.single("image"),
   authenticateJwt,
+  apiLimiter,
   validateBody(createReportSchema),
   createReport,
 );
@@ -41,16 +43,28 @@ router.post(
 router.get(
   "/",
   authenticateJwt,
+  apiLimiter,
   validateQuery(getReportQuerySchema),
   getAllReport,
 );
 
-router.get("/markers", validateQuery(getReportQuerySchema), getMapMarkers);
+router.get(
+  "/markers",
+  apiLimiter,
+  validateQuery(getReportQuerySchema),
+  getMapMarkers,
+);
 
-router.get("/user-reports", authenticateJwt, getReportsByUserId);
+router.get(
+  "/user-reports",
+  authenticateJwt,
+  apiLimiter,
+  getReportsByUserId,
+);
 
 router.get(
   "/:reportId",
+  apiLimiter,
   validateParams(generateIdSchema("reportId")),
   getReportById,
 );
@@ -58,6 +72,7 @@ router.get(
 router.delete(
   "/:reportId",
   authenticateJwt,
+  apiLimiter,
   validateParams(generateIdSchema("reportId")),
   deleteReportById,
 );
@@ -65,6 +80,7 @@ router.delete(
 router.put(
   "/:reportId/state",
   authenticateJwt,
+  apiLimiter,
   restrictTo(ROLES.ADMIN, ROLES.MUNI),
   validateParams(generateIdSchema("reportId")),
   validateBody(changeStateSchema),
