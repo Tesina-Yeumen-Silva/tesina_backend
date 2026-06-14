@@ -13,7 +13,6 @@ export const getHistoryByReportIdService = async (reportId: number) => {
       createdAt: true,
       state: {
         select: {
-          id: true,
           name: true,
           color: true,
         },
