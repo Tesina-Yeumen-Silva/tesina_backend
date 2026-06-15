@@ -25,7 +25,12 @@ import { authenticateJwt } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.post("/register", authLimiter, validateBody(registerLocalSchema), registerLocal);
+router.post(
+  "/register",
+  authLimiter,
+  validateBody(registerLocalSchema),
+  registerLocal,
+);
 router.post(
   "/register/confirm",
   authLimiter,
@@ -33,25 +38,32 @@ router.post(
   confirmRegister,
 );
 router.post("/login", authLimiter, validateBody(loginLocalSchema), loginLocal);
-router.post(
-  "/refresh",
-  apiLimiter,
-  validateBody(tokenSchema),
-  refreshToken,
-);
+router.post("/refresh", apiLimiter, validateBody(tokenSchema), refreshToken);
 router.post("/logout", apiLimiter, validateBody(tokenSchema), logout);
 
-router.post("/forgot-password", authLimiter, validateBody(requestPasswordResetSchema), requestPasswordReset)
+router.post(
+  "/forgot-password",
+  authLimiter,
+  validateBody(requestPasswordResetSchema),
+  requestPasswordReset,
+);
 
-router.post("/reset-password", authLimiter, validateBody(confirmPasswordResetSchema), confirmPasswordReset)
+router.post(
+  "/reset-password",
+  authLimiter,
+  validateBody(confirmPasswordResetSchema),
+  confirmPasswordReset,
+);
 
-router.get(
-  "/google",
+router.get("/google", (req, res, next) => {
+  const redirectUri = req.query.redirect_uri as string;
+
   passport.authenticate("google", {
     scope: ["email", "profile"],
     session: false,
-  }),
-);
+    state: redirectUri,
+  })(req, res, next);
+});
 
 router.get(
   "/google/callback",
