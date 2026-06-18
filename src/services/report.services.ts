@@ -7,7 +7,7 @@ import type {
   CreateReportDTO,
   GetReportsQueryDTO,
 } from "../schemas/report.schema.js";
-import { Prisma } from "../generated/prisma/index.js";
+import { Prisma } from "@prisma/client";
 import { REPORT_STATES } from "../constants/reportStates.js";
 import { publishReportValidation } from "../queues/publishers/reportPublisher.js";
 
