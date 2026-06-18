@@ -1,0 +1,43 @@
+# Dependencias (se reinstalan en el build)
+node_modules
+npm-debug.log*
+
+# Output de TypeScript (se regenera en el build)
+dist
+build
+
+# Variables de entorno (nunca deben entrar a la imagen)
+.env
+.env.*
+!.env.example
+
+# Prisma (solo ignorar lo generado, NO el schema)
+prisma/migrations/*.sql.bak
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker (no necesita copiarse a sí mismo)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Editor y OS
+.vscode
+.idea
+*.DS_Store
+Thumbs.db
+
+# Logs y temporales
+logs
+*.log
+tmp
+.tmp
+
+# Testing (no va a producción)
+coverage
+.nyc_output
+**/*.test.ts
+**/*.spec.ts
