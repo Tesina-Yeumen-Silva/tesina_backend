@@ -12,9 +12,11 @@ import { errorHandler } from "./middleware/error.middleware.js";
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(express.json());
 app.use(cors());
-app.use(globalLimiter)
+app.use(globalLimiter);
 app.use(passport.initialize());
 
 app.use("/roles", roleRouter);
@@ -25,7 +27,5 @@ app.use("/report-categories", reportCategoryRouter);
 app.use("/report-states", reportStateRouter);
 
 app.use(errorHandler);
-
-
 
 export default app;
