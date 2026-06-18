@@ -78,12 +78,12 @@ export const googleCallback = (req: Request, res: Response) => {
   if (redirectUri) {
     const user = JSON.stringify({ userId, email, role });
     res.redirect(
-      `redirectUri?token ={token}&refreshToken=refreshToken{encodeURIComponent(user)}`,
+      `${redirectUri}?token=${token}&refreshToken=${refreshToken}&user=${encodeURIComponent(user)}`,
     );
   } else {
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     res.redirect(
-      `frontendUrl?accessToken ={token}&refreshToken=${refreshToken}`,
+      `${frontendUrl}?token=${token}&refreshToken=${refreshToken}`,
     );
   }
 };
