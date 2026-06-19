@@ -6,7 +6,7 @@ import { encrypt, decrypt } from "./crypto.js";
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 const TOKEN_CONFIG = {
-  access: { expiresIn: "7d" },
+  access: { expiresIn: "15m" },
   register: { expiresIn: "15m" },
 } as const;
 
