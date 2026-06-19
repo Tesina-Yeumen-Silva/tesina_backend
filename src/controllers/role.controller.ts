@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
+import { sendResponse } from "../utils/response.js";
 import {
   createRoleService,
   deleteRoleByIdService,
@@ -7,31 +8,23 @@ import {
   getRoleByIdService,
   updateRoleService,
 } from "../services/role.services.js";
-import type{ CreateRoleDTO, UpdateRoleDTO } from "../schemas/role.schema.js";
+import type { CreateRoleDTO, UpdateRoleDTO } from "../schemas/role.schema.js";
 
 export const getAllRole = catchAsync(async (req: Request, res: Response) => {
   const roles = await getAllRoleService();
-
-  res.status(200).json({ data: roles });
+  sendResponse(res, 200, "Roles retrieved successfully", roles);
 });
 
 export const getRoleById = catchAsync(async (req: Request, res: Response) => {
   const roleId = Number(req.params.roleId);
-
   const role = await getRoleByIdService(roleId);
-
-  res.status(200).json({ data: role });
+  sendResponse(res, 200, "Role retrieved successfully", role);
 });
 
 export const createRole = catchAsync(async (req: Request, res: Response) => {
   const roleData: CreateRoleDTO = req.body;
-
   const newRole = await createRoleService(roleData);
-
-  res.status(201).json({
-    message: "Role created",
-    data: newRole,
-  });
+  sendResponse(res, 201, "Role created successfully", newRole);
 });
 
 export const updateRole = catchAsync(async (req: Request, res: Response) => {
@@ -39,21 +32,11 @@ export const updateRole = catchAsync(async (req: Request, res: Response) => {
   const roleData: UpdateRoleDTO = req.body;
 
   const updatedRole = await updateRoleService(roleId, roleData);
-
-  res.status(200).json({
-    message: "Role updated successfully",
-    data: updatedRole,
-  });
+  sendResponse(res, 200, "Role updated successfully", updatedRole);
 });
 
-export const deleteRoleById = catchAsync(
-  async (req: Request, res: Response) => {
-    const roleId = Number(req.params.roleId);
-
-    await deleteRoleByIdService(roleId);
-
-    res.status(200).json({
-      message: "Role deleted successfully",
-    });
-  },
-);
+export const deleteRoleById = catchAsync(async (req: Request, res: Response) => {
+  const roleId = Number(req.params.roleId);
+  await deleteRoleByIdService(roleId);
+  sendResponse(res, 200, "Role deleted successfully");
+});

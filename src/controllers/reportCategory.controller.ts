@@ -1,58 +1,42 @@
+import type { Request, Response } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
-import type { Request,Response } from "express";
-import { createCategoryService, deleteCategoryByIdService, getAllCategoryService, getCategoryByIdService, updateCategoryService } from "../services/reportCategory.services.js";
+import { sendResponse } from "../utils/response.js";
+import { 
+  createCategoryService, 
+  deleteCategoryByIdService, 
+  getAllCategoryService, 
+  getCategoryByIdService, 
+  updateCategoryService 
+} from "../services/reportCategory.services.js";
 import type { CreateCategoryDTO, UpdateCategoryDTO } from "../schemas/category.schema.js";
 
-    export const createCategory = catchAsync(async(req:Request,res:Response) =>{
-        const data:CreateCategoryDTO = req.body;
+export const createCategory = catchAsync(async (req: Request, res: Response) => {
+  const data: CreateCategoryDTO = req.body;
+  const newCategory = await createCategoryService(data);
+  sendResponse(res, 201, "Category created successfully", newCategory);
+});
 
-        const newCategory = await createCategoryService(data)
+export const getAllCategory = catchAsync(async (req: Request, res: Response) => {
+  const categories = await getAllCategoryService();
+  sendResponse(res, 200, "Categories retrieved successfully", categories);
+});
 
-        res.status(201).json({
-            message: "category created",
-            data: newCategory
-        });
-    })
+export const getCategoryById = catchAsync(async (req: Request, res: Response) => {
+  const categoryId = Number(req.params.categoryId);
+  const category = await getCategoryByIdService(categoryId);
+  sendResponse(res, 200, "Category retrieved successfully", category);
+});
 
-    export const getAllCategory = catchAsync(async(req:Request,res:Response) =>{
-        const categories = await getAllCategoryService()
+export const updateCategory = catchAsync(async (req: Request, res: Response) => {
+  const categoryId = Number(req.params.categoryId);
+  const data: UpdateCategoryDTO = req.body;
 
-        res.status(200).json({ data: categories });
-    })
-    
-    export const getCategoryById = catchAsync(async(req:Request,res:Response) =>{
-        const categoryId = Number(req.params.categoryId);
+  const updatedCategory = await updateCategoryService(categoryId, data);
+  sendResponse(res, 200, "Category updated successfully", updatedCategory);
+});
 
-        const category = await getCategoryByIdService(categoryId)
-
-    
-        res.status(200).json({ data: category });
-        
-    })
-
-    export const updateCategory = catchAsync(async(req:Request,res:Response) =>{
-        const categoryId = Number(req.params.categoryId);
-        const data: UpdateCategoryDTO = req.body;
-
-
-
-        const updatedCategory = await updateCategoryService(categoryId,data)
-
-        res.status(200).json({
-            message: "Category updated successfully",
-            data: updatedCategory
-        });
-    })
-
-    export const deleteCategoryById = catchAsync(async(req:Request,res:Response) =>{
-        const categoryId = Number(req.params.categoryId);
-
-        await deleteCategoryByIdService(categoryId)
-
-        res.status(200).json({
-            message: "Category deleted successfully",
-        });
-
-    })
-
-
+export const deleteCategoryById = catchAsync(async (req: Request, res: Response) => {
+  const categoryId = Number(req.params.categoryId);
+  await deleteCategoryByIdService(categoryId);
+  sendResponse(res, 200, "Category deleted successfully");
+});
