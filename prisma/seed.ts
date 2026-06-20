@@ -54,7 +54,7 @@ async function main() {
     });
   }
 
-  const passwordHash = await bcrypt.hash("123456", 10);
+  const passwordHash = await bcrypt.hash("12345678", 10);
 
   const testUsers = [
     { email: "user@test.com", role: createdRoles.user, name: "Ciudadano Test" },
@@ -75,7 +75,7 @@ async function main() {
 
     await prisma.authProvider.upsert({
       where: { userId_provider: { userId: user.id, provider: "local" } },
-      update: {},
+      update: { passwordHash },
       create: { userId: user.id, provider: "local", passwordHash },
     });
   }
