@@ -7,6 +7,7 @@ import {
   changeState,
   getMapMarkers,
   getReportsByUserId,
+  getAdheredReportsByUserId,
 } from "../controllers/report.controller.js";
 import { uploadMiddleware } from "../middleware/upload.middleware.js";
 import {
@@ -60,6 +61,13 @@ router.get(
   authenticateJwt,
   apiLimiter,
   getReportsByUserId,
+);
+
+router.get(
+  "/adhered-reports",
+  authenticateJwt,
+  apiLimiter,
+  getAdheredReportsByUserId,
 );
 
 router.get(

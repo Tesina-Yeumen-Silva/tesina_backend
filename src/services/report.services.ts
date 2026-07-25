@@ -1,7 +1,14 @@
 import { prisma } from "../config/prisma.js";
-import { NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError } from "../utils/appError.js";
+import {
+  NotFoundError,
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+} from "../utils/appError.js";
 import { uploadImageToCloud } from "./cloud.services.js";
 import { optimizeImageService } from "./image.services.js";
+import { logger } from "../utils/logger.js";
+
 import type {
   ChangeStateDTO,
   CreateReportDTO,
@@ -10,6 +17,7 @@ import type {
 import { Prisma } from "@prisma/client";
 import { REPORT_STATES } from "../constants/reportStates.js";
 import { publishReportValidation } from "../queues/publishers/reportPublisher.js";
+import { notifyReportStatusUpdateService } from "./notification.services.js";
 
 export const createReportService = async (
   data: CreateReportDTO,
@@ -221,7 +229,7 @@ export const deleteReportByIdService = async (
 
   const currentState = report.reportHistory[0]?.state?.name;
 
-  if (currentState !== "Pending") {
+  if (currentState !== REPORT_STATES.PENDIENTE) {
     throw new ForbiddenError("Cant delete report in progress");
   }
 
@@ -251,6 +259,15 @@ export const changeStateService = async (
       state: true,
     },
   });
+
+  notifyReportStatusUpdateService(reportId, newHistory.state.name).catch(
+    (err) => {
+      logger.error(
+        "Error enviando notificaciones tras cambio administrativo de estado:",
+        err,
+      );
+    },
+  );
 
   return newHistory;
 };
@@ -296,6 +313,74 @@ export const getReportsByUserIdService = async (
       address: report.address,
       createdAt: report.createdAt,
       categoryName: report.category?.name || "Sin categoría",
+      stateName: currentState?.name || REPORT_STATES.PENDIENTE,
+      stateColor: currentState?.color || "#9E9E9E",
+    };
+  });
+
+  return {
+    reports: formattedReports,
+    meta: {
+      total: totalReports,
+      page: page,
+      limit: limit,
+      hasMore: page * limit < totalReports,
+    },
+  };
+};
+
+export const getAdheredReportsByUserIdService = async (
+  userId: number,
+  page: number = 1,
+  limit: number = 10,
+) => {
+  const skip = (page - 1) * limit;
+
+  const rawReports = await prisma.report.findMany({
+    where: {
+      deletedAt: null,
+      reportAdhesion: {
+        some: {
+          userId: userId,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    skip: skip,
+    take: limit,
+    select: {
+      id: true,
+      address: true,
+      createdAt: true,
+      category: { select: { name: true } },
+      reportHistory: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        include: {
+          state: { select: { name: true, color: true } },
+        },
+      },
+    },
+  });
+
+  const totalReports = await prisma.report.count({
+    where: {
+      deletedAt: null,
+      reportAdhesion: {
+        some: {
+          userId: userId,
+        },
+      },
+    },
+  });
+
+  const formattedReports = rawReports.map((report) => {
+    const currentState = report.reportHistory[0]?.state;
+    return {
+      id: report.id,
+      address: report.address,
+      createdAt: report.createdAt,
+      categoryName: report.category?.name || "Sin categoría",
       stateName: currentState?.name || "Pendiente",
       stateColor: currentState?.color || "#9E9E9E",
     };
@@ -311,3 +396,4 @@ export const getReportsByUserIdService = async (
     },
   };
 };
+

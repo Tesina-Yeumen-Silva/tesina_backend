@@ -1,22 +1,37 @@
 import type { Request, Response } from "express";
 import { catchAsync } from "../utils/catchAsync.js";
 import { sendResponse } from "../utils/response.js";
-import { 
-  createUserService, 
-  deleteUserByIdService, 
-  getAllUsersService, 
-  getUserByEmailService, 
-  getUserByIdService, 
-  updatedUserService, 
-  updatePasswordService 
+import {
+  createUserService,
+  deleteUserByIdService,
+  getAllUsersService,
+  getUserByEmailService,
+  getUserByIdService,
+  savePushTokenService,
+  updatedUserService,
+  updatePasswordService,
 } from "../services/user.services.js";
-import type { CreateUserDTO, UpdateUserDTO, UpdatePasswordDTO } from "../schemas/user.schema.js";
+import type {
+  CreateUserDTO,
+  UpdateUserDTO,
+  UpdatePasswordDTO,
+} from "../schemas/user.schema.js";
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
   const data: CreateUserDTO = req.body;
   const result = await createUserService(data);
   sendResponse(res, 201, "User created successfully", result);
 });
+
+export const registerPushToken = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user!.userId;
+    const { token } = req.body;
+
+    const result = await savePushTokenService(userId, token);
+    sendResponse(res, 201, "Push token registered successfully", result);
+  },
+);
 
 export const getAllUser = catchAsync(async (req: Request, res: Response) => {
   const users = await getAllUsersService();
@@ -37,22 +52,28 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, 200, "User updated successfully", updatedUser);
 });
 
-export const updatePassword = catchAsync(async (req: Request, res: Response) => {
-  const userId = Number(req.params.userId);
-  const data: UpdatePasswordDTO = req.body;
+export const updatePassword = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = Number(req.params.userId);
+    const data: UpdatePasswordDTO = req.body;
 
-  await updatePasswordService(userId, data);
-  sendResponse(res, 200, "Password updated successfully");
-});
+    await updatePasswordService(userId, data);
+    sendResponse(res, 200, "Password updated successfully");
+  },
+);
 
-export const deleteUserById = catchAsync(async (req: Request, res: Response) => {
-  const userId = Number(req.params.userId);
-  await deleteUserByIdService(userId);
-  sendResponse(res, 200, "User deleted successfully");
-});
+export const deleteUserById = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = Number(req.params.userId);
+    await deleteUserByIdService(userId);
+    sendResponse(res, 200, "User deleted successfully");
+  },
+);
 
-export const getUserByEmail = catchAsync(async (req: Request, res: Response) => {
-  const email = req.params.email as string;
-  const user = await getUserByEmailService(email);
-  sendResponse(res, 200, "User retrieved successfully", user);
-});
+export const getUserByEmail = catchAsync(
+  async (req: Request, res: Response) => {
+    const email = req.params.email as string;
+    const user = await getUserByEmailService(email);
+    sendResponse(res, 200, "User retrieved successfully", user);
+  },
+);

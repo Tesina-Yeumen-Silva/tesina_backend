@@ -16,6 +16,15 @@ model RefreshToken {
   createdAt DateTime @default(now())
 }
 
+model PushToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id             Int                  @id @default(autoincrement())
   email          String               @unique
@@ -27,6 +36,7 @@ model User {
   deletedAt      DateTime?
   refreshTokens  RefreshToken[]
   authProviders  AuthProvider[]
+  pushTokens     PushToken[]
   reportAdhesion ReportAdhesion[]
   report         Report[]
   passwordReset  PasswordResetToken[]

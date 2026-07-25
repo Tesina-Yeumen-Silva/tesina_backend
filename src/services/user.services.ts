@@ -45,6 +45,14 @@ export const createUserService = async (data: CreateUserDTO) => {
   return newUser;
 };
 
+export const savePushTokenService = async (userId: number, token: string) => {
+  return await prisma.pushToken.upsert({
+    where: { token },
+    update: { userId },
+    create: { token, userId },
+  });
+};
+
 export const getAllUsersService = async () => {
   const users = await prisma.user.findMany({
     where: { deletedAt: null },

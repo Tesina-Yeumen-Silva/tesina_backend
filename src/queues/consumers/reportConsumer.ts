@@ -2,6 +2,7 @@ import { getChannel } from "../connection.js";
 import { rabbitmqConfig } from "../../config/rabbitmq.js";
 import type { ReportResultMessage } from "../../types/queue.js";
 import { logger } from "../../utils/logger.js";
+import { notifyReportStatusUpdateService } from "../../services/notification.services.js";
 
 export async function startReportConsumer(): Promise<void> {
   try {
@@ -41,6 +42,8 @@ export async function startReportConsumer(): Promise<void> {
         logger.info(
           `RabbitMQ: Reporte ${result.reportId} finalizado con estado: ${result.status}`,
         );
+
+        await notifyReportStatusUpdateService(result.reportId, result.status);
 
         channel.ack(msg);
       } catch (processingError) {

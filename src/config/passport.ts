@@ -4,6 +4,8 @@ import { prisma } from "./prisma.js";
 import { signAccessToken } from "../utils/jwt.js";
 import { generateRefreshTokenService } from "../services/auth.service.js";
 import { PROVIDERS } from "../constants/authProviders.js";
+import { ROLES } from "../constants/roles.js";
+
 
 passport.use(
   new GoogleStrategy(
@@ -55,7 +57,7 @@ passport.use(
         }
 
         const defaultRole = await prisma.role.findUnique({
-          where: { name: "user" },
+          where: { name: ROLES.USER },
         });
         if (!defaultRole) return done(new Error("Default role not found"));
 
