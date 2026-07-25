@@ -1,7 +1,14 @@
 import { prisma } from "../config/prisma.js";
-import { NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError } from "../utils/appError.js";
+import {
+  NotFoundError,
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+} from "../utils/appError.js";
 import { uploadImageToCloud } from "./cloud.services.js";
 import { optimizeImageService } from "./image.services.js";
+import { logger } from "../utils/logger.js";
+
 import type {
   ChangeStateDTO,
   CreateReportDTO,
@@ -10,6 +17,7 @@ import type {
 import { Prisma } from "@prisma/client";
 import { REPORT_STATES } from "../constants/reportStates.js";
 import { publishReportValidation } from "../queues/publishers/reportPublisher.js";
+import { notifyReportStatusUpdateService } from "./notification.services.js";
 
 export const createReportService = async (
   data: CreateReportDTO,
@@ -221,7 +229,7 @@ export const deleteReportByIdService = async (
 
   const currentState = report.reportHistory[0]?.state?.name;
 
-  if (currentState !== "Pending") {
+  if (currentState !== REPORT_STATES.PENDIENTE) {
     throw new ForbiddenError("Cant delete report in progress");
   }
 
@@ -251,6 +259,15 @@ export const changeStateService = async (
       state: true,
     },
   });
+
+  notifyReportStatusUpdateService(reportId, newHistory.state.name).catch(
+    (err) => {
+      logger.error(
+        "Error enviando notificaciones tras cambio administrativo de estado:",
+        err,
+      );
+    },
+  );
 
   return newHistory;
 };

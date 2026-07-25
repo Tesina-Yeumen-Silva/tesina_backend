@@ -7,6 +7,7 @@ import {
   updatePassword,
   updateUser,
   deleteUserById,
+  registerPushToken,
 } from "../controllers/user.controller.js";
 import {
   validateBody,
@@ -18,6 +19,7 @@ import {
   updateUserSchema,
   updatePasswordSchema,
   emailParamSchema,
+  registerPushTokenSchema,
 } from "../schemas/user.schema.js";
 import { authenticateJwt, restrictTo } from "../middleware/auth.middleware.js";
 import { ROLES } from "../constants/roles.js";
@@ -33,6 +35,12 @@ router.post(
   restrictTo(ROLES.ADMIN),
   validateBody(createUserSchema),
   createUser,
+);
+
+router.post(
+  "/push-token",
+  validateBody(registerPushTokenSchema),
+  registerPushToken,
 );
 
 router.get("/", restrictTo(ROLES.ADMIN), getAllUser);
