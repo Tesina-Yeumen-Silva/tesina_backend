@@ -1,7 +1,17 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../config/prisma.js";
-import { signAccessToken, signRefreshToken, signRegisterToken, verifyRegisterToken } from "../utils/jwt.js";
-import { UnauthorizedError, NotFoundError, BadRequestError, ConflictError } from "../utils/appError.js";
+import {
+  signAccessToken,
+  signRefreshToken,
+  signRegisterToken,
+  verifyRegisterToken,
+} from "../utils/jwt.js";
+import {
+  UnauthorizedError,
+  NotFoundError,
+  BadRequestError,
+  ConflictError,
+} from "../utils/appError.js";
 import type {
   confirmPasswordResetDTO,
   LoginLocalDTO,
@@ -159,7 +169,9 @@ export async function confirmRegisterService(data: ConfirmRegisterDTO) {
   }
 
   if (payload.email !== email || payload.code !== code) {
-    throw new BadRequestError("Código de validación incorrecto o el email no coincide");
+    throw new BadRequestError(
+      "Código de validación incorrecto o el email no coincide",
+    );
   }
 
   const existingUser = await prisma.user.findFirst({
@@ -217,7 +229,8 @@ export async function loginLocalService(data: LoginLocalDTO) {
       password,
       localProvider.passwordHash!,
     );
-    if (!validPassword) throw new UnauthorizedError("Invalid email or password");
+    if (!validPassword)
+      throw new UnauthorizedError("Invalid email or password");
   }
 
   const token = signAccessToken({
