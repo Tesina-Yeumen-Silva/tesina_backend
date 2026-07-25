@@ -313,7 +313,7 @@ export const getReportsByUserIdService = async (
       address: report.address,
       createdAt: report.createdAt,
       categoryName: report.category?.name || "Sin categoría",
-      stateName: currentState?.name || "Pendiente",
+      stateName: currentState?.name || REPORT_STATES.PENDIENTE,
       stateColor: currentState?.color || "#9E9E9E",
     };
   });
