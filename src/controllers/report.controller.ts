@@ -9,7 +9,8 @@ import {
   getAllReportService, 
   getMapMarkersService, 
   getReportByIdService, 
-  getReportsByUserIdService 
+  getReportsByUserIdService,
+  getAdheredReportsByUserIdService
 } from "../services/report.services.js";
 import type { ChangeStateDTO, CreateReportDTO, GetReportsQueryDTO } from "../schemas/report.schema.js";
 
@@ -86,4 +87,16 @@ export const getReportsByUserId = catchAsync(async (req: Request, res: Response)
   const result = await getReportsByUserIdService(userId, page, limit);
 
   sendResponse(res, 200, "Reports retrieved successfully", result.reports, result.meta);
+});
+
+export const getAdheredReportsByUserId = catchAsync(async (req: Request, res: Response) => {
+  if (!req.user) throw new BadRequestError("User not found");
+  const userId = req.user.userId;
+
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  const result = await getAdheredReportsByUserIdService(userId, page, limit);
+
+  sendResponse(res, 200, "Adhered reports retrieved successfully", result.reports, result.meta);
 });
