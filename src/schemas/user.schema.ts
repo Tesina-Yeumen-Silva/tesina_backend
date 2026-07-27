@@ -31,3 +31,15 @@ export type RegisterPushTokenDTO = z.infer<typeof registerPushTokenSchema>;
 export type CreateUserDTO = z.infer<typeof createUserSchema>;
 export type UpdateUserDTO = z.infer<typeof updateUserSchema>;
 export type UpdatePasswordDTO = z.infer<typeof updatePasswordSchema>;
+
+export const getUsersQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().trim().min(1).optional(),
+  role: z
+    .union([z.string(), z.array(z.string())])
+    .transform((val) => (Array.isArray(val) ? val : [val]))
+    .optional(),
+});
+
+export type GetUsersQueryDTO = z.infer<typeof getUsersQuerySchema>;
