@@ -11,10 +11,12 @@ import {
   updatedUserService,
   updatePasswordService,
 } from "../services/user.services.js";
-import type {
-  CreateUserDTO,
-  UpdateUserDTO,
-  UpdatePasswordDTO,
+import {
+  getUsersQuerySchema,
+  type CreateUserDTO,
+  type UpdateUserDTO,
+  type UpdatePasswordDTO,
+  type GetUsersQueryDTO,
 } from "../schemas/user.schema.js";
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
@@ -34,8 +36,13 @@ export const registerPushToken = catchAsync(
 );
 
 export const getAllUser = catchAsync(async (req: Request, res: Response) => {
-  const users = await getAllUsersService();
-  sendResponse(res, 200, "Users retrieved successfully", users);
+  const queryData = getUsersQuerySchema.parse(req.query);
+  const result = await getAllUsersService(queryData, req.user?.role);
+  sendResponse(res, 200, "Users retrieved successfully", result.users, {
+    currentPage: result.page,
+    totalPages: Math.ceil(result.totalUsers / result.limit),
+    totalItems: result.totalUsers,
+  });
 });
 
 export const getUserById = catchAsync(async (req: Request, res: Response) => {
@@ -48,7 +55,7 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const data: UpdateUserDTO = req.body;
 
-  const updatedUser = await updatedUserService(userId, data);
+  const updatedUser = await updatedUserService(userId, data, req.user?.role);
   sendResponse(res, 200, "User updated successfully", updatedUser);
 });
 
@@ -57,7 +64,7 @@ export const updatePassword = catchAsync(
     const userId = Number(req.params.userId);
     const data: UpdatePasswordDTO = req.body;
 
-    await updatePasswordService(userId, data);
+    await updatePasswordService(userId, data, req.user?.role);
     sendResponse(res, 200, "Password updated successfully");
   },
 );
@@ -65,7 +72,7 @@ export const updatePassword = catchAsync(
 export const deleteUserById = catchAsync(
   async (req: Request, res: Response) => {
     const userId = Number(req.params.userId);
-    await deleteUserByIdService(userId);
+    await deleteUserByIdService(userId, req.user?.role);
     sendResponse(res, 200, "User deleted successfully");
   },
 );
