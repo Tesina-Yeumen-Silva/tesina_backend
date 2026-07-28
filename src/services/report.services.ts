@@ -83,6 +83,7 @@ export const getAllReportService = async (query: GetReportsQueryDTO) => {
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
+        category: true,
         reportHistory: {
           orderBy: { createdAt: "desc" },
           take: 1,

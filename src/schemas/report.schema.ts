@@ -32,10 +32,7 @@ export const updateReportSchema = createReportSchema.partial();
 
 export const changeStateSchema = z.object({
   stateId: z.coerce.number().positive("El ID del estado es inválido"),
-  observation: z
-    .string()
-    .min(5, "La observación debe tener al menos 5 caracteres")
-    .optional(),
+  observation: z.string().optional(),
 });
 
 interface MulterFields {
