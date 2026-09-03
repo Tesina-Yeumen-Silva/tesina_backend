@@ -35,7 +35,7 @@ router.get("/", getAllCategory);
 
 router.get(
   "/:categoryId",
-  restrictTo(ROLES.ADMIN, ROLES.MUNI),
+  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   validateParams(generateIdSchema("categoryId")),
   getCategoryById,
 );

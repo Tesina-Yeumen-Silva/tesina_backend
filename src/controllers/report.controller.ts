@@ -72,8 +72,9 @@ export const deleteReportById = catchAsync(async (req: Request, res: Response) =
 export const changeState = catchAsync(async (req: Request, res: Response) => {
   const reportId = Number(req.params.reportId);
   const data: ChangeStateDTO = req.body;
+  const userId = req.user?.userId;
 
-  const updatedState = await changeStateService(reportId, data);
+  const updatedState = await changeStateService(reportId, data, userId);
   sendResponse(res, 200, "Report state updated successfully", updatedState);
 });
 

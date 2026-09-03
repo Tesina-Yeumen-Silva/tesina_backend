@@ -36,10 +36,11 @@ model User {
   deletedAt      DateTime?
   refreshTokens  RefreshToken[]
   authProviders  AuthProvider[]
-  pushTokens     PushToken[]
-  reportAdhesion ReportAdhesion[]
-  report         Report[]
-  passwordReset  PasswordResetToken[]
+  pushTokens      PushToken[]
+  reportAdhesion  ReportAdhesion[]
+  report          Report[]
+  reportHistories ReportHistory[]
+  passwordReset   PasswordResetToken[]
 }
 
 model PasswordResetToken {
@@ -111,6 +112,8 @@ model ReportHistory {
   reportId    Int
   stateId     Int
   observation String
+  userId      Int?
+  user        User?       @relation(fields: [userId], references: [id])
   createdAt   DateTime    @default(now())
   report      Report      @relation(fields: [reportId], references: [id])
   state       ReportState @relation(fields: [stateId], references: [id])

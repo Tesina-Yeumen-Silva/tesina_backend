@@ -243,6 +243,7 @@ export const deleteReportByIdService = async (
 export const changeStateService = async (
   reportId: number,
   data: ChangeStateDTO,
+  userId?: number,
 ) => {
   const report = await prisma.report.findFirst({
     where: { id: reportId, deletedAt: null },
@@ -255,9 +256,21 @@ export const changeStateService = async (
       reportId: reportId,
       stateId: data.stateId,
       observation: data.observation || "Cambio administrativo",
+      userId: userId || null,
     },
     include: {
       state: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          role: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
     },
   });
 

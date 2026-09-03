@@ -22,7 +22,7 @@ router.get(
   "/",
   authenticateJwt,
   apiLimiter,
-  restrictTo(ROLES.ADMIN, ROLES.MUNI),
+  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   validateParams(generateIdSchema("reportId")),
   getAdhesionsByReportId,
 );

@@ -28,7 +28,7 @@ router.post(
   createRole,
 );
 
-router.get("/", restrictTo(ROLES.ADMIN, ROLES.MUNI), getAllRole);
+router.get("/", restrictTo(ROLES.ADMIN, ROLES.OPERATOR), getAllRole);
 
 router.get(
   "/:roleId",

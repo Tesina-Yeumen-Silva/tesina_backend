@@ -33,13 +33,13 @@ router.post(
 
 router.get(
   "/",
-  restrictTo(ROLES.ADMIN, ROLES.MUNI),
+  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   getAllStates,
 );
 
 router.get(
   "/:stateId",
-  restrictTo(ROLES.ADMIN, ROLES.MUNI),
+  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   validateParams(generateIdSchema("stateId")),
   getStateById,
 );

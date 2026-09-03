@@ -68,8 +68,8 @@ export const getAllUsersService = async (
     deletedAt: null,
   };
 
-  // Restricción: El rol "muni" SOLO puede visualizar a los usuarios ciudadanos ("user")
-  if (requestingUserRole === ROLES.MUNI) {
+  // Restricción: El rol "operador" SOLO puede visualizar a los usuarios ciudadanos ("user")
+  if (requestingUserRole === ROLES.OPERATOR) {
     whereClause.role = {
       name: ROLES.USER,
     };
@@ -154,8 +154,8 @@ export const updatedUserService = async (
     throw new ForbiddenError("Los usuarios ciudadanos no son editables.");
   }
 
-  // Restricción: El rol muni no puede editar administradores
-  if (requestingUserRole === ROLES.MUNI && user.role?.name === ROLES.ADMIN) {
+  // Restricción: El rol operador no puede editar administradores
+  if (requestingUserRole === ROLES.OPERATOR && user.role?.name === ROLES.ADMIN) {
     throw new ForbiddenError("No tienes permisos para modificar administradores.");
   }
 
@@ -179,7 +179,7 @@ export const updatePasswordService = async (
 
   if (!user) throw new NotFoundError("Usuario no encontrado.");
 
-  if (requestingUserRole === ROLES.MUNI && user.role?.name === ROLES.ADMIN) {
+  if (requestingUserRole === ROLES.OPERATOR && user.role?.name === ROLES.ADMIN) {
     throw new ForbiddenError("No tienes permisos para modificar administradores.");
   }
 
@@ -213,8 +213,8 @@ export const deleteUserByIdService = async (
     throw new ForbiddenError("Los usuarios ciudadanos no pueden ser eliminados.");
   }
 
-  // Restricción: El rol muni no puede eliminar administradores
-  if (requestingUserRole === ROLES.MUNI && user.role?.name === ROLES.ADMIN) {
+  // Restricción: El rol operador no puede eliminar administradores
+  if (requestingUserRole === ROLES.OPERATOR && user.role?.name === ROLES.ADMIN) {
     throw new ForbiddenError("No tienes permisos para eliminar administradores.");
   }
 

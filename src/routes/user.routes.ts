@@ -43,25 +43,25 @@ router.post(
   registerPushToken,
 );
 
-router.get("/", restrictTo(ROLES.ADMIN, ROLES.MUNI), getAllUser);
+router.get("/", restrictTo(ROLES.ADMIN, ROLES.OPERATOR), getAllUser);
 
 router.get(
   "/:userId",
-  restrictTo(ROLES.ADMIN, ROLES.MUNI),
+  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   validateParams(generateIdSchema("userId")),
   getUserById,
 );
 
 router.get(
   "/email/:email",
-  restrictTo(ROLES.ADMIN, ROLES.MUNI),
+  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   validateParams(emailParamSchema),
   getUserByEmail,
 );
 
 router.put(
   "/:userId",
-  restrictTo(ROLES.ADMIN, ROLES.MUNI),
+  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   validateParams(generateIdSchema("userId")),
   validateBody(updateUserSchema),
   updateUser,

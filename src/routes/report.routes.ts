@@ -89,7 +89,7 @@ router.put(
   "/:reportId/state",
   authenticateJwt,
   apiLimiter,
-  restrictTo(ROLES.ADMIN, ROLES.MUNI),
+  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   validateParams(generateIdSchema("reportId")),
   validateBody(changeStateSchema),
   changeState,

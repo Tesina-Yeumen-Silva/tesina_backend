@@ -6,7 +6,7 @@ import type { Role } from "../src/generated/prisma/client.js";
 async function main() {
   console.log("🌱 Iniciando el proceso de seed...");
 
-  const roles = ["user", "admin", "muni"];
+  const roles = ["user", "admin", "operador"];
   const createdRoles: Record<string, Role> = {};
 
   for (const roleName of roles) {
@@ -59,7 +59,7 @@ async function main() {
   const testUsers = [
     { email: "user@test.com", role: createdRoles.user, name: "Ciudadano Test" },
     { email: "admin@test.com", role: createdRoles.admin, name: "Admin Test" },
-    { email: "muni@test.com", role: createdRoles.muni, name: "Municipio Test" },
+    { email: "operador@test.com", role: createdRoles.operador, name: "Operador Test" },
   ];
 
   for (const { email, role, name } of testUsers) {
