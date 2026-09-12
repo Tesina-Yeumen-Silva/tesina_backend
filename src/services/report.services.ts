@@ -91,6 +91,9 @@ export const getAllReportService = async (query: GetReportsQueryDTO) => {
             state: true,
           },
         },
+        _count: {
+          select: { reportAdhesion: true },
+        },
       },
     }),
     prisma.report.count({ where: whereClause }),

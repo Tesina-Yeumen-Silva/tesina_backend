@@ -9,6 +9,7 @@ import {
   getReportsByUserId,
   getAdheredReportsByUserId,
 } from "../controllers/report.controller.js";
+import { getDashboardMetrics } from "../controllers/metrics.controller.js";
 import { uploadMiddleware } from "../middleware/upload.middleware.js";
 import {
   validateBody,
@@ -54,6 +55,13 @@ router.get(
   apiLimiter,
   validateQuery(getReportQuerySchema),
   getMapMarkers,
+);
+
+router.get(
+  "/metrics",
+  authenticateJwt,
+  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
+  getDashboardMetrics
 );
 
 router.get(
