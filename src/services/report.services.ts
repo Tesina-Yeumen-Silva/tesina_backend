@@ -100,7 +100,7 @@ export const getAllReportService = async (query: GetReportsQueryDTO) => {
 };
 
 export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
-  const { minLat, maxLat, minLng, maxLng } = query;
+  const { minLat, maxLat, minLng, maxLng, categoryId, stateId } = query;
 
   const excludedStates = [
     REPORT_STATES.PENDIENTE,
@@ -115,6 +115,14 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
     maxLng !== undefined
       ? Prisma.sql`AND r.latitude >= ${minLat} AND r.latitude <= ${maxLat} AND r.longitude >= ${minLng} AND r.longitude <= ${maxLng}`
       : Prisma.empty;
+
+  const categoryFilter = categoryId !== undefined
+    ? Prisma.sql`AND r."categoryId" = ${categoryId}`
+    : Prisma.empty;
+
+  const stateFilter = stateId !== undefined
+    ? Prisma.sql`AND s.id = ${stateId}`
+    : Prisma.empty;
 
   const rawMarkers: any[] = await prisma.$queryRaw`
     WITH LatestHistory AS (
@@ -133,8 +141,9 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
     INNER JOIN "ReportState" s ON lh."stateId" = s.id
     WHERE r."deletedAt" IS NULL
       AND s.name NOT IN (${Prisma.join(excludedStates)})
-      -- Insertamos las coordenadas si existen
       ${geoFilter}
+      ${categoryFilter}
+      ${stateFilter}
   `;
 
   const markers = rawMarkers.map((marker) => ({
