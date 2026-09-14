@@ -8,7 +8,7 @@ export const getDashboardMetricsService = async () => {
       ORDER BY "reportId", "createdAt" DESC
     ),
     ResolvedHistory AS (
-      SELECT "reportId", MIN("createdAt") as "resolvedAt"
+      SELECT rh."reportId", MIN(rh."createdAt") as "resolvedAt"
       FROM "ReportHistory" rh
       INNER JOIN "ReportState" rs ON rh."stateId" = rs.id
       WHERE rs.name = 'Resuelto'
