@@ -9,6 +9,7 @@ import reportCategoryRouter from "./routes/reportCategory.routes.js";
 import reportStateRouter from "./routes/reportState.routes.js";
 import reportRouter from "./routes/report.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
+import { setupSwagger } from "./docs/swagger.js";
 
 const app = express();
 
@@ -18,6 +19,8 @@ app.use(express.json());
 app.use(cors());
 app.use(globalLimiter);
 app.use(passport.initialize());
+
+setupSwagger(app);
 
 app.use("/roles", roleRouter);
 app.use("/auth", authRouter);
