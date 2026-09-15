@@ -4,6 +4,6 @@ import { catchAsync } from "../utils/catchAsync.js";
 import { sendResponse } from "../utils/response.js";
 
 export const getDashboardMetrics = catchAsync(async (req: Request, res: Response) => {
-  const result = await getDashboardMetricsService();
+  const result = await getDashboardMetricsService(req.query);
   sendResponse(res, 200, "Metrics retrieved successfully", result);
 });

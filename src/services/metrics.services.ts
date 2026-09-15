@@ -1,6 +1,37 @@
 import { prisma } from "../config/prisma.js";
 
-export const getDashboardMetricsService = async () => {
+import { Prisma } from "@prisma/client";
+
+export const getDashboardMetricsService = async (query: any = {}) => {
+  const { fromDate, toDate, categoryId, stateId, isAnonymous } = query;
+
+  const conditions = [Prisma.sql`r."deletedAt" IS NULL`];
+
+  if (fromDate) {
+    conditions.push(Prisma.sql`r."createdAt" >= ${new Date(fromDate)}`);
+  }
+  if (toDate) {
+    // Add 1 day to include the end date fully
+    const end = new Date(toDate);
+    end.setUTCDate(end.getUTCDate() + 1);
+    conditions.push(Prisma.sql`r."createdAt" < ${end}`);
+  }
+  if (categoryId) {
+    conditions.push(Prisma.sql`r."categoryId" = ${Number(categoryId)}`);
+  }
+  if (isAnonymous !== undefined) {
+    const isAnon = isAnonymous === 'true' || isAnonymous === true;
+    conditions.push(Prisma.sql`r."isAnonymous" = ${isAnon}`);
+  }
+
+  // To filter by current state, we need to apply it to the outer WHERE or a HAVING clause
+  // Since we already JOIN LatestHistory and "ReportState" s, we can filter on s.id
+  if (stateId) {
+    conditions.push(Prisma.sql`s.id = ${Number(stateId)}`);
+  }
+
+  const whereClause = Prisma.join(conditions, ' AND ');
+
   const rawStats: any[] = await prisma.$queryRaw`
     WITH LatestHistory AS (
       SELECT DISTINCT ON ("reportId") "reportId", "stateId"
@@ -12,7 +43,7 @@ export const getDashboardMetricsService = async () => {
       FROM "ReportHistory" rh
       INNER JOIN "ReportState" rs ON rh."stateId" = rs.id
       WHERE rs.name = 'Resuelto'
-      GROUP BY "reportId"
+      GROUP BY rh."reportId"
     ),
     AdhesionsCount AS (
       SELECT "reportId", COUNT(id) as "adhesions"
@@ -35,7 +66,7 @@ export const getDashboardMetricsService = async () => {
     LEFT JOIN "ReportCategory" c ON r."categoryId" = c.id
     LEFT JOIN ResolvedHistory res ON r.id = res."reportId"
     LEFT JOIN AdhesionsCount ac ON r.id = ac."reportId"
-    WHERE r."deletedAt" IS NULL
+    WHERE ${whereClause}
     ORDER BY r."createdAt" DESC
   `;
 
@@ -46,6 +77,7 @@ export const getDashboardMetricsService = async () => {
 
   const categoryCounts: Record<string, number> = {};
   const stateCounts: Record<string, number> = {};
+  const dateCounts: Record<string, number> = {};
 
   rawStats.forEach((row) => {
     totalReports++;
@@ -55,6 +87,11 @@ export const getDashboardMetricsService = async () => {
 
     const stateName = row.stateName || 'Desconocido';
     stateCounts[stateName] = (stateCounts[stateName] || 0) + 1;
+
+    if (row.reportDate) {
+      const dateStr = new Date(row.reportDate).toISOString().split('T')[0] || 'Unknown';
+      dateCounts[dateStr] = (dateCounts[dateStr] || 0) + 1;
+    }
 
     if (stateName === 'Resuelto') {
       totalSolved++;
@@ -71,6 +108,10 @@ export const getDashboardMetricsService = async () => {
   });
 
   const averageResolutionTimeHours = solvedWithTimeCount > 0 ? (totalResolutionTimeHours / solvedWithTimeCount) : 0;
+  
+  // Sort dates
+  const sortedDates = Object.keys(dateCounts).sort();
+  const reportsByDate = sortedDates.map(date => ({ date, count: dateCounts[date] }));
 
   return {
     metrics: {
@@ -79,6 +120,7 @@ export const getDashboardMetricsService = async () => {
       averageResolutionTimeHours,
       reportsByCategory: Object.entries(categoryCounts).map(([name, count]) => ({ name, count })),
       reportsByState: Object.entries(stateCounts).map(([name, count]) => ({ name, count })),
+      reportsByDate
     },
     exportData: rawStats.map(r => ({
       id: r.id,
