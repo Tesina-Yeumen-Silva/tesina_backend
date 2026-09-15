@@ -83,12 +83,16 @@ export const getAllReportService = async (query: GetReportsQueryDTO) => {
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
+        category: true,
         reportHistory: {
           orderBy: { createdAt: "desc" },
           take: 1,
           include: {
             state: true,
           },
+        },
+        _count: {
+          select: { reportAdhesion: true },
         },
       },
     }),
@@ -99,7 +103,7 @@ export const getAllReportService = async (query: GetReportsQueryDTO) => {
 };
 
 export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
-  const { minLat, maxLat, minLng, maxLng } = query;
+  const { minLat, maxLat, minLng, maxLng, categoryId, stateId } = query;
 
   const excludedStates = [
     REPORT_STATES.PENDIENTE,
@@ -114,6 +118,14 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
     maxLng !== undefined
       ? Prisma.sql`AND r.latitude >= ${minLat} AND r.latitude <= ${maxLat} AND r.longitude >= ${minLng} AND r.longitude <= ${maxLng}`
       : Prisma.empty;
+
+  const categoryFilter = categoryId !== undefined
+    ? Prisma.sql`AND r."categoryId" = ${categoryId}`
+    : Prisma.empty;
+
+  const stateFilter = stateId !== undefined
+    ? Prisma.sql`AND s.id = ${stateId}`
+    : Prisma.empty;
 
   const rawMarkers: any[] = await prisma.$queryRaw`
     WITH LatestHistory AS (
@@ -132,8 +144,9 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
     INNER JOIN "ReportState" s ON lh."stateId" = s.id
     WHERE r."deletedAt" IS NULL
       AND s.name NOT IN (${Prisma.join(excludedStates)})
-      -- Insertamos las coordenadas si existen
       ${geoFilter}
+      ${categoryFilter}
+      ${stateFilter}
   `;
 
   const markers = rawMarkers.map((marker) => ({
@@ -242,6 +255,7 @@ export const deleteReportByIdService = async (
 export const changeStateService = async (
   reportId: number,
   data: ChangeStateDTO,
+  userId?: number,
 ) => {
   const report = await prisma.report.findFirst({
     where: { id: reportId, deletedAt: null },
@@ -254,9 +268,21 @@ export const changeStateService = async (
       reportId: reportId,
       stateId: data.stateId,
       observation: data.observation || "Cambio administrativo",
+      userId: userId || null,
     },
     include: {
       state: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          role: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
     },
   });
 

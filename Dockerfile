@@ -16,9 +16,10 @@ FROM node:20.19.2-alpine3.21 AS runner
 WORKDIR /app
 RUN apk add --no-cache openssl
 ENV NODE_ENV=production
+ENV PORT=4500
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm ci --only=production && npx prisma generate
+RUN npm ci --only=production && npx --yes prisma generate
 COPY --from=builder /app/dist ./dist
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \

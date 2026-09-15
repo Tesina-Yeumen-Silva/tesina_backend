@@ -21,6 +21,8 @@ export const getReportQuerySchema = z.object({
   maxLat: z.coerce.number().optional(),
   minLng: z.coerce.number().optional(),
   maxLng: z.coerce.number().optional(),
+  categoryId: z.coerce.number().optional(),
+  stateId: z.coerce.number().optional(),
 });
 
 export const createReportSchema = reportSchema.omit({
@@ -32,10 +34,7 @@ export const updateReportSchema = createReportSchema.partial();
 
 export const changeStateSchema = z.object({
   stateId: z.coerce.number().positive("El ID del estado es inválido"),
-  observation: z
-    .string()
-    .min(5, "La observación debe tener al menos 5 caracteres")
-    .optional(),
+  observation: z.string().optional(),
 });
 
 interface MulterFields {
