@@ -97,6 +97,10 @@ model Report {
   category       ReportCategory   @relation(fields: [categoryId], references: [id])
   reportHistory  ReportHistory[]
   reportAdhesion ReportAdhesion[]
+
+  @@index([createdAt])
+  @@index([categoryId])
+  @@index([userId])
 }
 
 model ReportAdhesion {
@@ -118,6 +122,10 @@ model ReportHistory {
   createdAt   DateTime    @default(now())
   report      Report      @relation(fields: [reportId], references: [id])
   state       ReportState @relation(fields: [stateId], references: [id])
+
+  @@index([reportId])
+  @@index([stateId])
+  @@index([createdAt])
 }
 
 model ReportCategory {
