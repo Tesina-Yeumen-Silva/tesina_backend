@@ -41,6 +41,8 @@ model User {
   report          Report[]
   reportHistories ReportHistory[]
   passwordReset   PasswordResetToken[]
+
+  @@index([deletedAt])
 }
 
 model PasswordResetToken {
@@ -101,6 +103,8 @@ model Report {
   @@index([createdAt])
   @@index([categoryId])
   @@index([userId])
+  @@index([deletedAt])
+  @@index([latitude, longitude])
 }
 
 model ReportAdhesion {
@@ -110,6 +114,8 @@ model ReportAdhesion {
   createdAt DateTime @default(now())
   report    Report   @relation(fields: [reportId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, reportId])
 }
 
 model ReportHistory {
