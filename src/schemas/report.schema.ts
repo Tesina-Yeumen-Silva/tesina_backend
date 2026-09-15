@@ -21,6 +21,8 @@ export const getReportQuerySchema = z.object({
   maxLat: z.coerce.number().optional(),
   minLng: z.coerce.number().optional(),
   maxLng: z.coerce.number().optional(),
+  categoryId: z.coerce.number().optional(),
+  stateId: z.coerce.number().optional(),
 });
 
 export const createReportSchema = reportSchema.omit({
