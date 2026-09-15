@@ -585,6 +585,7 @@ router.get(
   "/user-reports",
   authenticateJwt,
   apiLimiter,
+  validateQuery(getReportQuerySchema),
   getReportsByUserId,
 );
 
@@ -670,6 +671,7 @@ router.get(
   "/adhered-reports",
   authenticateJwt,
   apiLimiter,
+  validateQuery(getReportQuerySchema),
   getAdheredReportsByUserId,
 );
 
