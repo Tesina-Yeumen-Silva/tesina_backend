@@ -5,7 +5,7 @@ export const reportSchema = z.object({
   address: z.string().min(5, "La dirección debe tener al menos 5 caracteres"),
   latitude: z.coerce.number(),
   longitude: z.coerce.number(),
-  description: z.string(),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres").max(2000, "La descripción no puede superar los 2000 caracteres"),
   imageUrl: z.string(),
   isAnonymous: z.preprocess(
     (val) => val === "true" || val === true, 
