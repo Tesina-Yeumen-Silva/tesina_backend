@@ -21,7 +21,6 @@ import { apiLimiter } from "../config/rateLimit.js";
 
 const router = Router();
 
-router.use(authenticateJwt);
 router.use(apiLimiter);
 
 /**
@@ -89,6 +88,7 @@ router.use(apiLimiter);
  */
 router.post(
   "/",
+  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateBody(createCategorySchema),
   createCategory,
@@ -187,6 +187,7 @@ router.get("/", getAllCategory);
  */
 router.get(
   "/:categoryId",
+  authenticateJwt,
   restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   validateParams(generateIdSchema("categoryId")),
   getCategoryById,
@@ -255,6 +256,7 @@ router.get(
  */
 router.put(
   "/:categoryId",
+  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("categoryId")),
   validateBody(updateCategorySchema),
@@ -304,6 +306,7 @@ router.put(
  */
 router.delete(
   "/:categoryId",
+  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("categoryId")),
   deleteCategoryById,

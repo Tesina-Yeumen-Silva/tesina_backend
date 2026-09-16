@@ -21,7 +21,6 @@ import { apiLimiter } from "../config/rateLimit.js";
 
 const router = Router();
 
-router.use(authenticateJwt);
 router.use(apiLimiter);
 
 /**
@@ -101,6 +100,7 @@ router.use(apiLimiter);
  */
 router.post(
   "/",
+  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateBody(createStateSchema),
   createState,
@@ -112,8 +112,6 @@ router.post(
  *   get:
  *     summary: Get all report states
  *     tags: [Report States]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: States retrieved successfully
@@ -148,14 +146,11 @@ router.post(
  *                       updatedAt:
  *                         type: string
  *                         format: date-time
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden (Admin/Operator only)
+ *       500:
+ *         description: Internal server error
  */
 router.get(
   "/",
-  restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   getAllStates,
 );
 
@@ -217,6 +212,7 @@ router.get(
  */
 router.get(
   "/:stateId",
+  authenticateJwt,
   restrictTo(ROLES.ADMIN, ROLES.OPERATOR),
   validateParams(generateIdSchema("stateId")),
   getStateById,
@@ -298,6 +294,7 @@ router.get(
  */
 router.put(
   "/:stateId",
+  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("stateId")),
   validateBody(updateStateSchema),
@@ -344,6 +341,7 @@ router.put(
  */
 router.delete(
   "/:stateId",
+  authenticateJwt,
   restrictTo(ROLES.ADMIN),
   validateParams(generateIdSchema("stateId")),
   deleteStateById,

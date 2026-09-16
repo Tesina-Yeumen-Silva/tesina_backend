@@ -19,15 +19,23 @@ import { REPORT_STATES } from "../constants/reportStates.js";
 import { publishReportValidation } from "../queues/publishers/reportPublisher.js";
 import { notifyReportStatusUpdateService } from "./notification.services.js";
 
+let pendingStateId: number | null = null;
+
+async function getPendingStateId(): Promise<number> {
+  if (pendingStateId !== null) return pendingStateId;
+  const state = await prisma.reportState.findFirst({
+    where: { name: REPORT_STATES.PENDIENTE },
+  });
+  if (!state) throw new BadRequestError("State 'Pendiente' not found");
+  pendingStateId = state.id;
+  return pendingStateId;
+}
+
 export const createReportService = async (
   data: CreateReportDTO,
   userId: number,
 ) => {
-  const createdState = await prisma.reportState.findFirst({
-    where: { name: REPORT_STATES.PENDIENTE },
-  });
-
-  if (!createdState) throw new BadRequestError("State not found");
+  const stateId = await getPendingStateId();
 
   const { buffer: optimizedImage } = await optimizeImageService(
     data.originalBuffer,
@@ -46,7 +54,7 @@ export const createReportService = async (
       categoryId: Number(data.categoryId),
       reportHistory: {
         create: {
-          stateId: createdState.id,
+          stateId: stateId,
           observation: "Reporte ingresado en el sistema",
         },
       },
@@ -147,6 +155,7 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
       ${geoFilter}
       ${categoryFilter}
       ${stateFilter}
+    LIMIT 500
   `;
 
   const markers = rawMarkers.map((marker) => ({
@@ -305,32 +314,33 @@ export const getReportsByUserIdService = async (
 ) => {
   const skip = (page - 1) * limit;
 
-  const rawReports = await prisma.report.findMany({
-    where: {
-      userId: userId,
-      deletedAt: null,
-    },
-    orderBy: { createdAt: "desc" },
-    skip: skip,
-    take: limit,
-    select: {
-      id: true,
-      address: true,
-      createdAt: true,
-      category: { select: { name: true } },
-      reportHistory: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        include: {
-          state: { select: { name: true, color: true } },
+  const [rawReports, totalReports] = await prisma.$transaction([
+    prisma.report.findMany({
+      where: {
+        userId: userId,
+        deletedAt: null,
+      },
+      orderBy: { createdAt: "desc" },
+      skip: skip,
+      take: limit,
+      select: {
+        id: true,
+        address: true,
+        createdAt: true,
+        category: { select: { name: true } },
+        reportHistory: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          include: {
+            state: { select: { name: true, color: true } },
+          },
         },
       },
-    },
-  });
-
-  const totalReports = await prisma.report.count({
-    where: { userId: userId, deletedAt: null },
-  });
+    }),
+    prisma.report.count({
+      where: { userId: userId, deletedAt: null },
+    })
+  ]);
 
   const formattedReports = rawReports.map((report) => {
     const currentState = report.reportHistory[0]?.state;
@@ -362,43 +372,44 @@ export const getAdheredReportsByUserIdService = async (
 ) => {
   const skip = (page - 1) * limit;
 
-  const rawReports = await prisma.report.findMany({
-    where: {
-      deletedAt: null,
-      reportAdhesion: {
-        some: {
-          userId: userId,
+  const [rawReports, totalReports] = await prisma.$transaction([
+    prisma.report.findMany({
+      where: {
+        deletedAt: null,
+        reportAdhesion: {
+          some: {
+            userId: userId,
+          },
         },
       },
-    },
-    orderBy: { createdAt: "desc" },
-    skip: skip,
-    take: limit,
-    select: {
-      id: true,
-      address: true,
-      createdAt: true,
-      category: { select: { name: true } },
-      reportHistory: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        include: {
-          state: { select: { name: true, color: true } },
+      orderBy: { createdAt: "desc" },
+      skip: skip,
+      take: limit,
+      select: {
+        id: true,
+        address: true,
+        createdAt: true,
+        category: { select: { name: true } },
+        reportHistory: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          include: {
+            state: { select: { name: true, color: true } },
+          },
         },
       },
-    },
-  });
-
-  const totalReports = await prisma.report.count({
-    where: {
-      deletedAt: null,
-      reportAdhesion: {
-        some: {
-          userId: userId,
+    }),
+    prisma.report.count({
+      where: {
+        deletedAt: null,
+        reportAdhesion: {
+          some: {
+            userId: userId,
+          },
         },
       },
-    },
-  });
+    })
+  ]);
 
   const formattedReports = rawReports.map((report) => {
     const currentState = report.reportHistory[0]?.state;

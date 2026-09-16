@@ -82,8 +82,7 @@ export const getReportsByUserId = catchAsync(async (req: Request, res: Response)
   if (!req.user) throw new BadRequestError("User not found");
   const userId = req.user.userId;
 
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 10;
+  const { page, limit } = req.query as unknown as GetReportsQueryDTO;
 
   const result = await getReportsByUserIdService(userId, page, limit);
 
@@ -94,8 +93,7 @@ export const getAdheredReportsByUserId = catchAsync(async (req: Request, res: Re
   if (!req.user) throw new BadRequestError("User not found");
   const userId = req.user.userId;
 
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 10;
+  const { page, limit } = req.query as unknown as GetReportsQueryDTO;
 
   const result = await getAdheredReportsByUserIdService(userId, page, limit);
 

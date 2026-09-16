@@ -20,7 +20,7 @@ export const getDashboardMetricsService = async (query: any = {}) => {
     conditions.push(Prisma.sql`r."categoryId" = ${Number(categoryId)}`);
   }
   if (isAnonymous !== undefined) {
-    const isAnon = isAnonymous === 'true' || isAnonymous === true;
+    const isAnon = isAnonymous === "true" || isAnonymous === true;
     conditions.push(Prisma.sql`r."isAnonymous" = ${isAnon}`);
   }
 
@@ -30,7 +30,7 @@ export const getDashboardMetricsService = async (query: any = {}) => {
     conditions.push(Prisma.sql`s.id = ${Number(stateId)}`);
   }
 
-  const whereClause = Prisma.join(conditions, ' AND ');
+  const whereClause = Prisma.join(conditions, " AND ");
 
   const rawStats: any[] = await prisma.$queryRaw`
     WITH LatestHistory AS (
@@ -68,6 +68,7 @@ export const getDashboardMetricsService = async (query: any = {}) => {
     LEFT JOIN AdhesionsCount ac ON r.id = ac."reportId"
     WHERE ${whereClause}
     ORDER BY r."createdAt" DESC
+    LIMIT 10000
   `;
 
   let totalReports = 0;
@@ -82,23 +83,25 @@ export const getDashboardMetricsService = async (query: any = {}) => {
   rawStats.forEach((row) => {
     totalReports++;
 
-    const catName = row.categoryName || 'Sin categoría';
+    const catName = row.categoryName || "Sin categoría";
     categoryCounts[catName] = (categoryCounts[catName] || 0) + 1;
 
-    const stateName = row.stateName || 'Desconocido';
+    const stateName = row.stateName || "Desconocido";
     stateCounts[stateName] = (stateCounts[stateName] || 0) + 1;
 
     if (row.reportDate) {
-      const dateStr = new Date(row.reportDate).toISOString().split('T')[0] || 'Unknown';
+      const dateStr =
+        new Date(row.reportDate).toISOString().split("T")[0] || "Unknown";
       dateCounts[dateStr] = (dateCounts[dateStr] || 0) + 1;
     }
 
-    if (stateName === 'Resuelto') {
+    if (stateName === "Resuelto") {
       totalSolved++;
     }
 
     if (row.resolvedAt && row.reportDate) {
-      const diffMs = new Date(row.resolvedAt).getTime() - new Date(row.reportDate).getTime();
+      const diffMs =
+        new Date(row.resolvedAt).getTime() - new Date(row.reportDate).getTime();
       const diffHours = diffMs / (1000 * 60 * 60);
       if (diffHours >= 0) {
         totalResolutionTimeHours += diffHours;
@@ -107,22 +110,33 @@ export const getDashboardMetricsService = async (query: any = {}) => {
     }
   });
 
-  const averageResolutionTimeHours = solvedWithTimeCount > 0 ? (totalResolutionTimeHours / solvedWithTimeCount) : 0;
-  
+  const averageResolutionTimeHours =
+    solvedWithTimeCount > 0
+      ? totalResolutionTimeHours / solvedWithTimeCount
+      : 0;
+
   // Sort dates
   const sortedDates = Object.keys(dateCounts).sort();
-  const reportsByDate = sortedDates.map(date => ({ date, count: dateCounts[date] }));
+  const reportsByDate = sortedDates.map((date) => ({
+    date,
+    count: dateCounts[date],
+  }));
 
   return {
     metrics: {
       totalReports,
       totalSolved,
       averageResolutionTimeHours,
-      reportsByCategory: Object.entries(categoryCounts).map(([name, count]) => ({ name, count })),
-      reportsByState: Object.entries(stateCounts).map(([name, count]) => ({ name, count })),
-      reportsByDate
+      reportsByCategory: Object.entries(categoryCounts).map(
+        ([name, count]) => ({ name, count }),
+      ),
+      reportsByState: Object.entries(stateCounts).map(([name, count]) => ({
+        name,
+        count,
+      })),
+      reportsByDate,
     },
-    exportData: rawStats.map(r => ({
+    exportData: rawStats.map((r) => ({
       id: r.id,
       fechaCreacion: r.reportDate,
       direccion: r.address,
@@ -131,7 +145,14 @@ export const getDashboardMetricsService = async (query: any = {}) => {
       adhesiones: Number(r.adhesions),
       esAnonimo: r.isAnonymous ? "Sí" : "No",
       fechaResolucion: r.resolvedAt || null,
-      horasResolucion: r.resolvedAt && r.reportDate ? ((new Date(r.resolvedAt).getTime() - new Date(r.reportDate).getTime()) / (1000 * 60 * 60)).toFixed(2) : null
-    }))
+      horasResolucion:
+        r.resolvedAt && r.reportDate
+          ? (
+              (new Date(r.resolvedAt).getTime() -
+                new Date(r.reportDate).getTime()) /
+              (1000 * 60 * 60)
+            ).toFixed(2)
+          : null,
+    })),
   };
 };
