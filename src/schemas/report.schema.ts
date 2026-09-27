@@ -14,6 +14,23 @@ export const reportSchema = z.object({
   categoryId: z.coerce.number(),
 });
 
+const parseIdList = (val: unknown) => {
+  if (val === undefined || val === null || val === "") return undefined;
+  if (typeof val === "number") return [val];
+  if (typeof val === "string") {
+    const list = val
+      .split(",")
+      .map((s) => Number(s.trim()))
+      .filter((n) => !isNaN(n) && n > 0);
+    return list.length > 0 ? list : undefined;
+  }
+  if (Array.isArray(val)) {
+    const list = val.map(Number).filter((n) => !isNaN(n) && n > 0);
+    return list.length > 0 ? list : undefined;
+  }
+  return undefined;
+};
+
 export const getReportQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(20),
@@ -21,8 +38,11 @@ export const getReportQuerySchema = z.object({
   maxLat: z.coerce.number().optional(),
   minLng: z.coerce.number().optional(),
   maxLng: z.coerce.number().optional(),
-  categoryId: z.coerce.number().optional(),
-  stateId: z.coerce.number().optional(),
+  categoryId: z.preprocess(parseIdList, z.array(z.number()).optional()),
+  stateId: z.preprocess(parseIdList, z.array(z.number()).optional()),
+  search: z.string().optional(),
+  sortBy: z.enum(["date", "adhesions", "createdAt"]).optional().default("date"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
 });
 
 export const createReportSchema = reportSchema.omit({

@@ -67,33 +67,97 @@ export const createReportService = async (
 };
 
 export const getAllReportService = async (query: GetReportsQueryDTO) => {
-  const { page, limit, minLat, maxLat, minLng, maxLng } = query;
+  const {
+    page,
+    limit,
+    minLat,
+    maxLat,
+    minLng,
+    maxLng,
+    categoryId,
+    stateId,
+    search,
+    sortBy,
+    sortOrder,
+  } = query;
   const skip = (page - 1) * limit;
 
-  let reportIdsToFetch: number[] | undefined = undefined;
-  if (minLat !== undefined && maxLat !== undefined && minLng !== undefined && maxLng !== undefined) {
+  // 1. Filtro espacial (Bounding Box)
+  let geoIds: number[] | undefined = undefined;
+  if (
+    minLat !== undefined &&
+    maxLat !== undefined &&
+    minLng !== undefined &&
+    maxLng !== undefined
+  ) {
     const rawIds: { id: number }[] = await prisma.$queryRaw`
-      SELECT id FROM \"Report\" 
-      WHERE \"deletedAt\" IS NULL 
+      SELECT id FROM "Report" 
+      WHERE "deletedAt" IS NULL 
       AND location && ST_MakeEnvelope(${minLng}, ${minLat}, ${maxLng}, ${maxLat}, 4326)
     `;
-    reportIdsToFetch = rawIds.map(r => r.id);
+    geoIds = rawIds.map((r) => r.id);
+  }
+
+  // 2. Filtro por Estado (Último estado en ReportHistory)
+  let stateReportIds: number[] | undefined = undefined;
+  if (stateId !== undefined && stateId.length > 0) {
+    const matchingStateReports: { reportId: number }[] = await prisma.$queryRaw`
+      WITH LatestHistory AS (
+        SELECT DISTINCT ON ("reportId") "reportId", "stateId"
+        FROM "ReportHistory"
+        ORDER BY "reportId", "createdAt" DESC
+      )
+      SELECT "reportId"
+      FROM LatestHistory
+      WHERE "stateId" IN (${Prisma.join(stateId)})
+    `;
+    stateReportIds = matchingStateReports.map((r) => r.reportId);
+  }
+
+  // Combinar filtros por ID si existen
+  const idFilters: number[][] = [];
+  if (geoIds !== undefined) idFilters.push(geoIds);
+  if (stateReportIds !== undefined) idFilters.push(stateReportIds);
+
+  let finalIds: number[] | undefined = undefined;
+  if (idFilters.length > 0) {
+    finalIds = idFilters.reduce((a, b) => a.filter((c) => b.includes(c)));
   }
 
   const whereClause: Prisma.ReportWhereInput = {
     deletedAt: null,
   };
 
-  if (reportIdsToFetch !== undefined) {
-    whereClause.id = { in: reportIdsToFetch };
+  if (finalIds !== undefined) {
+    whereClause.id = { in: finalIds };
   }
+
+  // 3. Filtro por Categoría
+  if (categoryId !== undefined && categoryId.length > 0) {
+    whereClause.categoryId = { in: categoryId };
+  }
+
+  // 4. Búsqueda por texto (dirección o descripción)
+  if (search && search.trim() !== "") {
+    const term = search.trim();
+    whereClause.OR = [
+      { address: { contains: term, mode: "insensitive" } },
+      { description: { contains: term, mode: "insensitive" } },
+    ];
+  }
+
+  // 5. Ordenamiento dinámico
+  const orderByClause: Prisma.ReportOrderByWithRelationInput =
+    sortBy === "adhesions"
+      ? { reportAdhesion: { _count: sortOrder === "asc" ? "asc" : "desc" } }
+      : { createdAt: sortOrder === "asc" ? "asc" : "desc" };
 
   const [reports, totalReports] = await prisma.$transaction([
     prisma.report.findMany({
       where: whereClause,
       skip: skip,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy: orderByClause,
       include: {
         category: true,
         reportHistory: {
@@ -111,14 +175,14 @@ export const getAllReportService = async (query: GetReportsQueryDTO) => {
     prisma.report.count({ where: whereClause }),
   ]);
 
-  const ids = reports.map(r => r.id);
+  const ids = reports.map((r) => r.id);
   let coordsMap = new Map();
   if (ids.length > 0) {
-    const rawCoords: { id: number, lat: number, lng: number }[] = await prisma.$queryRaw`SELECT id, ST_Y(location::geometry) as lat, ST_X(location::geometry) as lng FROM \"Report\" WHERE id IN (${Prisma.join(ids)})`;
-    coordsMap = new Map(rawCoords.map(c => [c.id, c]));
+    const rawCoords: { id: number, lat: number, lng: number }[] = await prisma.$queryRaw`SELECT id, ST_Y(location::geometry) as lat, ST_X(location::geometry) as lng FROM "Report" WHERE id IN (${Prisma.join(ids)})`;
+    coordsMap = new Map(rawCoords.map((c) => [c.id, c]));
   }
   
-  const mappedReports = reports.map(r => {
+  const mappedReports = reports.map((r) => {
     const coords = coordsMap.get(r.id);
     return { ...r, latitude: coords?.lat || 0, longitude: coords?.lng || 0 };
   });
@@ -143,13 +207,15 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
       ? Prisma.sql`AND location && ST_MakeEnvelope(${minLng}, ${minLat}, ${maxLng}, ${maxLat}, 4326)`
       : Prisma.empty;
 
-  const categoryFilter = categoryId !== undefined
-    ? Prisma.sql`AND r."categoryId" = ${categoryId}`
-    : Prisma.empty;
+  const categoryFilter =
+    categoryId !== undefined && categoryId.length > 0
+      ? Prisma.sql`AND r."categoryId" IN (${Prisma.join(categoryId)})`
+      : Prisma.empty;
 
-  const stateFilter = stateId !== undefined
-    ? Prisma.sql`AND s.id = ${stateId}`
-    : Prisma.empty;
+  const stateFilter =
+    stateId !== undefined && stateId.length > 0
+      ? Prisma.sql`AND s.id IN (${Prisma.join(stateId)})`
+      : Prisma.empty;
 
   const rawMarkers: any[] = await prisma.$queryRaw`
     WITH LatestHistory AS (
