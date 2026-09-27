@@ -45,8 +45,6 @@ export const createReportService = async (
   const newReport = await prisma.report.create({
     data: {
       address: data.address,
-      latitude: Number(data.latitude),
-      longitude: Number(data.longitude),
       description: data.description,
       imageUrl: cloudUrl,
       isAnonymous: data.isAnonymous,
@@ -61,6 +59,8 @@ export const createReportService = async (
     },
   });
 
+  await prisma.$executeRaw`UPDATE \"Report\" SET location = ST_SetSRID(ST_MakePoint(${Number(data.longitude)}, ${Number(data.latitude)}), 4326) WHERE id = ${newReport.id}`;
+
   await publishReportValidation(newReport.id);
 
   return newReport;
@@ -70,18 +70,22 @@ export const getAllReportService = async (query: GetReportsQueryDTO) => {
   const { page, limit, minLat, maxLat, minLng, maxLng } = query;
   const skip = (page - 1) * limit;
 
+  let reportIdsToFetch: number[] | undefined = undefined;
+  if (minLat !== undefined && maxLat !== undefined && minLng !== undefined && maxLng !== undefined) {
+    const rawIds: { id: number }[] = await prisma.$queryRaw`
+      SELECT id FROM \"Report\" 
+      WHERE \"deletedAt\" IS NULL 
+      AND location && ST_MakeEnvelope(${minLng}, ${minLat}, ${maxLng}, ${maxLat}, 4326)
+    `;
+    reportIdsToFetch = rawIds.map(r => r.id);
+  }
+
   const whereClause: Prisma.ReportWhereInput = {
     deletedAt: null,
   };
 
-  if (
-    minLat !== undefined &&
-    maxLat !== undefined &&
-    minLng !== undefined &&
-    maxLng !== undefined
-  ) {
-    whereClause.latitude = { gte: minLat, lte: maxLat };
-    whereClause.longitude = { gte: minLng, lte: maxLng };
+  if (reportIdsToFetch !== undefined) {
+    whereClause.id = { in: reportIdsToFetch };
   }
 
   const [reports, totalReports] = await prisma.$transaction([
@@ -107,7 +111,19 @@ export const getAllReportService = async (query: GetReportsQueryDTO) => {
     prisma.report.count({ where: whereClause }),
   ]);
 
-  return { reports, totalReports, page, limit };
+  const ids = reports.map(r => r.id);
+  let coordsMap = new Map();
+  if (ids.length > 0) {
+    const rawCoords: { id: number, lat: number, lng: number }[] = await prisma.$queryRaw`SELECT id, ST_Y(location::geometry) as lat, ST_X(location::geometry) as lng FROM \"Report\" WHERE id IN (${Prisma.join(ids)})`;
+    coordsMap = new Map(rawCoords.map(c => [c.id, c]));
+  }
+  
+  const mappedReports = reports.map(r => {
+    const coords = coordsMap.get(r.id);
+    return { ...r, latitude: coords?.lat || 0, longitude: coords?.lng || 0 };
+  });
+
+  return { reports: mappedReports, totalReports, page, limit };
 };
 
 export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
@@ -124,7 +140,7 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
     maxLat !== undefined &&
     minLng !== undefined &&
     maxLng !== undefined
-      ? Prisma.sql`AND r.latitude >= ${minLat} AND r.latitude <= ${maxLat} AND r.longitude >= ${minLng} AND r.longitude <= ${maxLng}`
+      ? Prisma.sql`AND location && ST_MakeEnvelope(${minLng}, ${minLat}, ${maxLng}, ${maxLat}, 4326)`
       : Prisma.empty;
 
   const categoryFilter = categoryId !== undefined
@@ -143,8 +159,8 @@ export const getMapMarkersService = async (query: GetReportsQueryDTO) => {
     )
     SELECT 
       r.id, 
-      r.latitude, 
-      r.longitude, 
+      ST_Y(r.location::geometry) AS latitude, 
+      ST_X(r.location::geometry) AS longitude, 
       s.name AS status, 
       s.color AS "statusColor"
     FROM "Report" r
@@ -175,8 +191,6 @@ export const getReportByIdService = async (reportId: number) => {
     select: {
       id: true,
       address: true,
-      latitude: true,
-      longitude: true,
       description: true,
       imageUrl: true,
       createdAt: true,
@@ -209,11 +223,15 @@ export const getReportByIdService = async (reportId: number) => {
 
   if (!report) throw new NotFoundError("Report not found");
 
+  const rawCoords: { lat: number, lng: number }[] = await prisma.$queryRaw`SELECT ST_Y(location::geometry) as lat, ST_X(location::geometry) as lng FROM \"Report\" WHERE id = ${reportId}`;
+  const lat = rawCoords[0]?.lat || 0;
+  const lng = rawCoords[0]?.lng || 0;
+
   const mappedReport = {
     id: report.id,
     address: report.address,
-    latitude: report.latitude,
-    longitude: report.longitude,
+    latitude: lat,
+    longitude: lng,
     description: report.description,
     imageUrl: report.imageUrl,
     createdAt: report.createdAt,
@@ -271,6 +289,10 @@ export const changeStateService = async (
   });
 
   if (!report) throw new NotFoundError("Report not found");
+
+  const rawCoords: { lat: number, lng: number }[] = await prisma.$queryRaw`SELECT ST_Y(location::geometry) as lat, ST_X(location::geometry) as lng FROM \"Report\" WHERE id = ${reportId}`;
+  const lat = rawCoords[0]?.lat || 0;
+  const lng = rawCoords[0]?.lng || 0;
 
   const newHistory = await prisma.reportHistory.create({
     data: {

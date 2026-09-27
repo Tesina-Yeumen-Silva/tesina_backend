@@ -85,8 +85,7 @@ model AuthProvider {
 model Report {
   id             Int              @id @default(autoincrement())
   address        String
-  latitude       Float
-  longitude      Float
+  location       Unsupported("geometry(Point, 4326)")?
   description    String
   imageUrl       String
   isAnonymous    Boolean
@@ -104,7 +103,6 @@ model Report {
   @@index([categoryId])
   @@index([userId])
   @@index([deletedAt])
-  @@index([latitude, longitude])
 }
 
 model ReportAdhesion {
