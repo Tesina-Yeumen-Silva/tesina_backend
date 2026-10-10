@@ -14,5 +14,5 @@ export async function publishReportValidation(reportId: number): Promise<void> {
     timestamp: new Date().toISOString(),
   };
 
-  channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)));
+  channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), { persistent: true });
 }
