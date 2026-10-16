@@ -103,10 +103,11 @@ model Report {
   @@index([categoryId])
   @@index([userId])
   @@index([deletedAt])
+  @@index([userId, deletedAt, createdAt(sort: Desc)])
 }
 
 model ReportAdhesion {
-  id        Int      @id @default(autoincrement())
+  id        Int      @default(autoincrement()) @id
   userId    Int
   reportId  Int
   createdAt DateTime @default(now())
@@ -117,7 +118,7 @@ model ReportAdhesion {
 }
 
 model ReportHistory {
-  id          Int         @id @default(autoincrement())
+  id          Int         @default(autoincrement()) @id
   reportId    Int
   stateId     Int
   observation String
@@ -130,6 +131,7 @@ model ReportHistory {
   @@index([reportId])
   @@index([stateId])
   @@index([createdAt])
+  @@index([reportId, createdAt(sort: Desc)])
 }
 
 model ReportCategory {

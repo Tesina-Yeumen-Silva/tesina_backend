@@ -402,7 +402,7 @@ export const getReportsByUserIdService = async (
 ) => {
   const skip = (page - 1) * limit;
 
-  const [rawReports, totalReports] = await prisma.$transaction([
+  const [rawReports, totalReports] = await Promise.all([
     prisma.report.findMany({
       where: {
         userId: userId,
@@ -419,7 +419,7 @@ export const getReportsByUserIdService = async (
         reportHistory: {
           orderBy: { createdAt: "desc" },
           take: 1,
-          include: {
+          select: {
             state: { select: { name: true, color: true } },
           },
         },
@@ -427,7 +427,7 @@ export const getReportsByUserIdService = async (
     }),
     prisma.report.count({
       where: { userId: userId, deletedAt: null },
-    })
+    }),
   ]);
 
   const formattedReports = rawReports.map((report) => {
@@ -460,7 +460,7 @@ export const getAdheredReportsByUserIdService = async (
 ) => {
   const skip = (page - 1) * limit;
 
-  const [rawReports, totalReports] = await prisma.$transaction([
+  const [rawReports, totalReports] = await Promise.all([
     prisma.report.findMany({
       where: {
         deletedAt: null,
@@ -481,7 +481,7 @@ export const getAdheredReportsByUserIdService = async (
         reportHistory: {
           orderBy: { createdAt: "desc" },
           take: 1,
-          include: {
+          select: {
             state: { select: { name: true, color: true } },
           },
         },
@@ -496,7 +496,7 @@ export const getAdheredReportsByUserIdService = async (
           },
         },
       },
-    })
+    }),
   ]);
 
   const formattedReports = rawReports.map((report) => {
